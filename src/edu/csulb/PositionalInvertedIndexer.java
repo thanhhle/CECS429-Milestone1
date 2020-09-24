@@ -42,7 +42,6 @@ public class PositionalInvertedIndexer
 		else
 		{
 			// Allow user to select a directory that they would like to index
-			
 			JFileChooser fileChooser = new JFileChooser();
 	        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int option = fileChooser.showDialog(new JFrame(), "Choose Directory");
