@@ -15,7 +15,7 @@ public class OrQuery implements Query {
 	private List<Query> mChildren;
 	
 	public OrQuery(Iterable<Query> children) {
-		mChildren = new ArrayList<Query>();
+		mChildren = new ArrayList<>();
 		
 		for (Query query: children) {
 	        mChildren.add(query);

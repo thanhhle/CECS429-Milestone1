@@ -40,6 +40,7 @@ public class AndQuery implements Query {
 		return
 		 String.join(" ", mChildren.stream().map(c -> c.toString()).collect(Collectors.toList()));
 	}
+
 	
 	private List<Posting> intersectList(List<Posting> list1, List<Posting> list2)
 	{
@@ -73,4 +74,49 @@ public class AndQuery implements Query {
         
         return result;
 	}
+	
+	/*
+	private List<Posting> not(List<Posting> list1, Index index)
+	{
+		List<Posting> result = new ArrayList<Posting>();
+
+		for(String term: index.getVocabulary())
+		{
+			List<Posting> list2 = index.getPostings(term);
+			
+			
+			int i = 0;
+	        int j = 0;
+	        
+	        for(Posting posting: result)
+	        {
+	        	for(Posting posting2: temp)
+	        	{
+	        		if(posting.getDocumentId())
+	        	}
+	        	
+	        }
+	        
+	        while (i < list.size() && j < temp.size()) 
+	        {
+	        	if(list.get(i).getDocumentId() == temp.get(j).getDocumentId())
+	        	{
+	        		i++;
+	        		j++;
+	        	}
+	        	else if(list1.get(i).getDocumentId() < list2.get(j).getDocumentId())
+	        	{
+	        		i++;
+	        	}
+	        	else
+	        	{
+	        		j++;
+	        	}
+	        }
+	        
+		}
+		
+		return result;
+	}
+	*/
 }

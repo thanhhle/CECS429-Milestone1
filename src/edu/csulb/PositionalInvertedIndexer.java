@@ -31,7 +31,7 @@ import javax.swing.filechooser.FileFilter;
 
 public class PositionalInvertedIndexer 
 {	
-	public static void main(String[] args) 
+	public static void main(String[] args)
 	{
 		String directoryPath = null;
 		// directoryPath = "/Users/thanhle/Downloads/MobyDick10Chapters";
@@ -42,6 +42,7 @@ public class PositionalInvertedIndexer
 		else
 		{
 			// Allow user to select a directory that they would like to index
+			
 			JFileChooser fileChooser = new JFileChooser();
 	        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int option = fileChooser.showDialog(new JFrame(), "Choose Directory");
@@ -55,14 +56,15 @@ public class PositionalInvertedIndexer
 	        	System.out.println("Invalid selection. Program exist.");
 	        	System.exit(0);
 	        }
+	    
 		}
 	        
 	    // Print the selected directory path 
 		System.out.println("Directory path: " + directoryPath + "\n");
 		
 		// Construct a corpus from the selected directory
-		DocumentCorpus corpus = DirectoryCorpus.loadTextDirectory(Paths.get(directoryPath).toAbsolutePath(), ".txt");
-		// DocumentCorpus corpus = DirectoryCorpus.loadJsonDirectory(Paths.get(directoryPath).toAbsolutePath(), ".json");
+		// DocumentCorpus corpus = DirectoryCorpus.loadTextDirectory(Paths.get(directoryPath).toAbsolutePath(), ".txt");
+		DocumentCorpus corpus = DirectoryCorpus.loadJsonDirectory(Paths.get(directoryPath).toAbsolutePath(), ".json");
 			
 		// Build a positional inverted index and print indexing time
 		long startTime = System.currentTimeMillis();

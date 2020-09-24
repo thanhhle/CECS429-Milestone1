@@ -12,34 +12,36 @@ import java.util.List;
  */
 public class PhraseLiteral implements Query {
 	// The list of individual terms in the phrase.
-	private List<String> mTerms = new ArrayList<>();
+	private List<Query> mChildren = new ArrayList<>();
 	
 	/**
 	 * Constructs a PhraseLiteral with the given individual phrase terms.
 	 */
-	public PhraseLiteral(List<String> terms) {
-		mTerms.addAll(terms);
+	public PhraseLiteral(List<Query> children) {	
+		for (Query query: children) {
+	        mChildren.add(query);
+	    }	
 	}
 	
 	/**
 	 * Constructs a PhraseLiteral given a string with one or more individual terms separated by spaces.
 	 */
 	public PhraseLiteral(String terms) {
-		mTerms.addAll(Arrays.asList(terms.split(" ")));
+		for(String s: Arrays.asList(terms.split(" "))){
+			mChildren.add(new TermLiteral(s));
+		}
 	}
 	
 	@Override
 	public List<Posting> getPostings(Index index) {
-		TermLiteral term = new TermLiteral(mTerms.get(0));
-		List<Posting> result = term.getPostings(index);
+		List<Posting> result = mChildren.get(0).getPostings(index);
 		
 		// TODO: program this method. Retrieve the postings for the individual terms in the phrase,
 		// and positional merge them together.
 		int distance = 1;
-		for(int i = 1; i < mTerms.size(); i++)
+		for(int i = 1; i < mChildren.size(); i++)
 		{
-			term = new TermLiteral(mTerms.get(i));
-			result = positionalMerge(result, term.getPostings(index), distance);
+			result = positionalMerge(result, mChildren.get(i).getPostings(index), distance);
 			distance++;
 		}
 		
@@ -48,7 +50,12 @@ public class PhraseLiteral implements Query {
 	
 	@Override
 	public String toString() {
-		return "\"" + String.join(" ", mTerms) + "\"";
+		String s = "";
+		for(Query query: mChildren)
+		{
+			s += query.toString() + " ";
+		}
+		return s;
 	}
 	
 	private List<Posting> positionalMerge(List<Posting> list1, List<Posting> list2, int distance)
