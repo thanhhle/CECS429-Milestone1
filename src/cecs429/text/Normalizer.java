@@ -3,6 +3,9 @@ package cecs429.text;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.tartarus.snowball.SnowballStemmer;
+import org.tartarus.snowball.ext.englishStemmer;
+
 public class Normalizer {
 	
 	/**
@@ -40,55 +43,17 @@ public class Normalizer {
 		return token.replaceAll("'", "").replaceAll("\"", "");
 	}
 	
-	/**
-	 * For hyphen in words, remove the hyphens from the token 
-	 *  And split the original hyphenated token into multiple tokens without a hyphen
-	 *	And put these modified into a list of string
-	 * @param token the string
-	 * @return list of token with hyphens removed and tokens which are split by hyphens
-	 */
-	public List<String> splitHyphen(String token)
-	{
-		String[] splitTokens = token.split("-");
-		List<String> list = new ArrayList<String>();
-		
-		if(splitTokens.length > 1)
-		{
-			StringBuffer sb = new StringBuffer();
-			
-			for(String s: splitTokens)
-			{
-				if(!s.equals(""))
-				{
-					s = removeNonAlphanumeric(s);
-					s = removeApostropes(s);
-					list.add(s);
-					sb.append(s);
-				}	
-			}
-		
-			list.add(sb.toString());
-		}
-		else
-		{
-			String s = removeNonAlphanumeric(token);
-			s = removeApostropes(s);
-			list.add(s);
-		}
-		
-		return list;
-	}
 	
 	/**
 	 * Stem the token using an implementation of the Porter2 stemmer
 	 * @param token the string
 	 * @return
 	 */
-	public String stemToken(String token) {
-		Stemmer stemmer = new Stemmer();
-		stemmer.add(token.toCharArray(), token.length());
-		stemmer.stem();
-		return stemmer.toString();
+	public String stemToken(String token){
+		 SnowballStemmer stemmer = new englishStemmer();
+		 stemmer.setCurrent(token);
+		 stemmer.stem();
+		 return stemmer.getCurrent();  
 	}
 
 	

@@ -2,6 +2,7 @@ package cecs429.query;
 
 import cecs429.index.Index;
 import cecs429.index.Posting;
+import cecs429.text.TokenProcessor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,14 +21,14 @@ public class OrQuery implements Query {
 	}
 	
 	@Override
-	public List<Posting> getPostings(Index index) {
-		List<Posting> result = mChildren.get(0).getPostings(index);
+	public List<Posting> getPostings(Index index, TokenProcessor processor) {
+		List<Posting> result = mChildren.get(0).getPostings(index, processor);
 		
 		// TODO: program the merge for an OrQuery, by gathering the postings of the composed Query children and
 		// unioning the resulting postings.
 		for(int i = 1; i < mChildren.size(); i++)
 		{
-			result = unionList(result, mChildren.get(i).getPostings(index));
+			result = orMerge(result, mChildren.get(i).getPostings(index, processor));
 		}
 		
 		return result;
@@ -41,7 +42,7 @@ public class OrQuery implements Query {
 		 + " )";
 	}
 	
-	private List<Posting> unionList(List<Posting> list1, List<Posting> list2)
+	private List<Posting> orMerge(List<Posting> list1, List<Posting> list2)
 	{	
 		if(list1 == null && list2 == null)
 		{

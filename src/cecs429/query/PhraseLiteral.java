@@ -2,6 +2,7 @@ package cecs429.query;
 
 import cecs429.index.Index;
 import cecs429.index.Posting;
+import cecs429.text.TokenProcessor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,21 +27,23 @@ public class PhraseLiteral implements Query {
 	 * Constructs a PhraseLiteral given a string with one or more individual terms separated by spaces.
 	 */
 	public PhraseLiteral(String terms) {
-		for(String s: Arrays.asList(terms.split(" "))){
+		for(String s: Arrays.asList(terms.split(" ")))
+		{
 			mChildren.add(new TermLiteral(s));
 		}
 	}
 	
 	@Override
-	public List<Posting> getPostings(Index index) {
-		List<Posting> result = mChildren.get(0).getPostings(index);
+	public List<Posting> getPostings(Index index, TokenProcessor processor) 
+	{
+		List<Posting> result = mChildren.get(0).getPostings(index, processor);
 		
 		// TODO: program this method. Retrieve the postings for the individual terms in the phrase,
 		// and positional merge them together.
 		int distance = 1;
 		for(int i = 1; i < mChildren.size(); i++)
 		{
-			result = positionalMerge(result, mChildren.get(i).getPostings(index), distance);
+			result = positionalMerge(result, mChildren.get(i).getPostings(index, processor), distance);
 			distance++;
 		}
 		
@@ -100,7 +103,10 @@ public class PhraseLiteral implements Query {
 					 }
 				 }
 				 
-				 result.add(new Posting(list1.get(i).getDocumentId(), temp));
+				 if(temp.size() > 0)
+				 {
+					 result.add(new Posting(list1.get(i).getDocumentId(), temp));
+				 }
 				 
 				 i++;
 				 j++;

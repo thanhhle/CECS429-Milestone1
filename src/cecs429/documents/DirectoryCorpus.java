@@ -63,6 +63,7 @@ public class DirectoryCorpus implements DocumentCorpus {
 		return result;
 	}
 	
+	
 	/**
 	 * Finds all file names that match the corpus filter predicate and have a known file extension.
 	 */
@@ -167,10 +168,10 @@ public class DirectoryCorpus implements DocumentCorpus {
 	 * Constructs a corpus over a directory of text and JSON documents.
 	 * @param fileExtension The extension of the documents to load, ".json" or ".txt".
 	 */
-	public static DirectoryCorpus loadDirectory(Path absolutePath, String fileExtension) {
+	public static DirectoryCorpus loadDirectory(Path absolutePath) {
 		DirectoryCorpus corpus = new DirectoryCorpus(absolutePath);
-		corpus.registerFileDocumentFactory(fileExtension, JsonFileDocument::loadJsonFileDocument);
-		corpus.registerFileDocumentFactory(fileExtension, TextFileDocument::loadTextFileDocument);
+		corpus.registerFileDocumentFactory(".json", JsonFileDocument::loadJsonFileDocument);
+		corpus.registerFileDocumentFactory(".txt", TextFileDocument::loadTextFileDocument);
 		return corpus;
 	}
 	

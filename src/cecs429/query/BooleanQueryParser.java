@@ -52,7 +52,6 @@ public class BooleanQueryParser {
 			StringBounds nextSubquery = findNextSubquery(query, start);
 			// Extract the identified subquery into its own string.
 			String subquery = query.substring(nextSubquery.start, nextSubquery.start + nextSubquery.length);
-			System.out.println(subquery);
 			
 			int subStart = 0;
 			
@@ -62,8 +61,7 @@ public class BooleanQueryParser {
 			do {
 				// Extract the next literal from the subquery.
 				Literal lit = findNextLiteral(subquery, subStart);
-				System.out.println("Literal: " + lit.literalComponent);
-				
+
 				// Add the literal component to the conjunctive list.
 				if(lit.literalComponent.toString().startsWith("-"))
 				{

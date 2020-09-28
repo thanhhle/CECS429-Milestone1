@@ -1,5 +1,6 @@
 package cecs429.text;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -7,31 +8,68 @@ import java.util.List;
  * converting it to all lowercase.
  */
 public class AdvancedTokenProcessor implements TokenProcessor {
-	Normalizer normalizer = new Normalizer();
+	private Normalizer normalizer = new Normalizer();
 	
 	@Override
-	public List<String> processToken(String token) {
-		// Remove all non-alphanumeric characters from the beginning and end of the token
-		token = normalizer.removeNonAlphanumeric(token);
-		
-		// Remove all apostropes or quotation marks from the token
-		token = normalizer.removeApostropes(token);
-		
+	public List<String> processToken(String token) 
+	{
+		// Convert the token to lowercase
+		token = token.toLowerCase();
+
 		// For hyphen in words, remove the hyphens from the token 
-		// And split the original hyphenated token into multiple tokens without a hyphen
-		// And put these modified into a list of string
-		List<String> tokens = normalizer.splitHyphen(token);
+		// Split the original hyphenated token into multiple tokens without a hyphen, and proceed with all split tokens 
+		String[] splitTokens = token.split("-");
 		
-		for(String s: tokens)
+		List<String> list = new ArrayList<String>();
+		
+		// If the token can be splitted by the hyphens into more than one token
+		if(splitTokens.length > 1)
 		{
-			// Convert the token to lowercase
-			s = s.toLowerCase();
+			StringBuffer sb = new StringBuffer();
 			
-			// Stem the token using an implementation of the Porter2 stemmer
-			s = normalizer.stemToken(s);
+			for(String s: splitTokens)
+			{
+				if(!s.equals(""))
+				{
+					// Remove all non-alphanumeric characters from the beginning and end
+					s = normalizer.removeNonAlphanumeric(s);
+					
+					// Remove all apostropes or quotation marks
+					s = normalizer.removeApostropes(s);
+					
+					// Append it to a string
+					sb.append(s);
+					
+					// Stem using an implementation of the Porter2 stemmer
+					s = normalizer.stemToken(s);
+					
+					// Add to the return list
+					list.add(s);
+					
+				}	
+			}
+		
+			// Stem the appended string and add to the return list
+			list.add(normalizer.stemToken(sb.toString()));
 		}
 		
-		return tokens;
+		// If the token does not contain hyphen
+		else
+		{
+			// Remove all non-alphanumeric characters from the beginning and end
+			String s = normalizer.removeNonAlphanumeric(token);
+			
+			// Remove all apostropes or quotation marks
+			s = normalizer.removeApostropes(s);
+			
+			// Stem using an implementation of the Porter2 stemmer
+			s = normalizer.stemToken(s);
+			
+			// Add to the return list
+			list.add(s);
+		}
+		
+		return list;
 	}
 
 }

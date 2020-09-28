@@ -2,6 +2,7 @@ package cecs429.query;
 
 import cecs429.index.Index;
 import cecs429.index.Posting;
+import cecs429.text.TokenProcessor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,14 +20,14 @@ public class AndQuery implements Query {
 	}
 	
 	@Override
-	public List<Posting> getPostings(Index index) {
-		List<Posting> result = mChildren.get(0).getPostings(index);
+	public List<Posting> getPostings(Index index, TokenProcessor processor) {
+		List<Posting> result = mChildren.get(0).getPostings(index, processor);
 		
 		// TODO: program the merge for an AndQuery, by gathering the postings of the composed QueryComponents and
 		// intersecting the resulting postings.
 		for(int i = 1; i < mChildren.size(); i++)
 		{
-			result = intersectList(result, mChildren.get(i).getPostings(index));
+			result = andMerge(result, mChildren.get(i).getPostings(index, processor));
 		}
 		
 		return result;
@@ -39,7 +40,7 @@ public class AndQuery implements Query {
 	}
 
 	
-	private List<Posting> intersectList(List<Posting> list1, List<Posting> list2)
+	private List<Posting> andMerge(List<Posting> list1, List<Posting> list2)
 	{
 		if(list1 == null || list2 == null)
 		{
@@ -72,48 +73,37 @@ public class AndQuery implements Query {
         return result;
 	}
 	
-	/*
-	private List<Posting> not(List<Posting> list1, Index index)
-	{
-		List<Posting> result = new ArrayList<Posting>();
 
-		for(String term: index.getVocabulary())
+	private List<Posting> notMerge(List<Posting> list, List<Posting> notList)
+	{
+		if(list == null || notList == null)
 		{
-			List<Posting> list2 = index.getPostings(term);
-			
-			
-			int i = 0;
-	        int j = 0;
-	        
-	        for(Posting posting: result)
-	        {
-	        	for(Posting posting2: temp)
-	        	{
-	        		if(posting.getDocumentId())
-	        	}
-	        	
-	        }
-	        
-	        while (i < list.size() && j < temp.size()) 
-	        {
-	        	if(list.get(i).getDocumentId() == temp.get(j).getDocumentId())
-	        	{
-	        		i++;
-	        		j++;
-	        	}
-	        	else if(list1.get(i).getDocumentId() < list2.get(j).getDocumentId())
-	        	{
-	        		i++;
-	        	}
-	        	else
-	        	{
-	        		j++;
-	        	}
-	        }
-	        
+			return null;
 		}
+
+		List<Posting> result = new ArrayList<Posting>();
 		
-		return result;
+		int i = 0;
+        int j = 0;
+        
+        while (i < list.size() && j < notList.size()) 
+        {
+        	if(list.get(i).getDocumentId() == notList.get(j).getDocumentId())
+        	{
+        		result.add(list.get(i));
+        		i++;
+        		j++;
+        	}
+        	else if(list.get(i).getDocumentId() < notList.get(j).getDocumentId())
+        	{
+        		i++;
+        	}
+        	else
+        	{
+        		j++;
+        	}
+        }
+        
+        return result;
 	}
-	*/
 }

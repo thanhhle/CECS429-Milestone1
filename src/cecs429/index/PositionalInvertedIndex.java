@@ -64,6 +64,23 @@ public class PositionalInvertedIndex implements Index {
 		return mMap.get(term);
 	}
 	
+	
+	@Override
+	public List<Posting> getPostings(List<String> terms) {
+		List<Posting> list = new ArrayList<Posting>();
+		for(String term: terms)
+		{
+			List<Posting> postings = mMap.get(term);
+			if(postings != null)
+			{
+				list.addAll(postings);
+			}
+		}
+		
+		return list;
+	}
+	
+	
 	@Override
 	public List<String> getVocabulary() {
 		List<String> vocabulary = new ArrayList<String>(mMap.keySet());
