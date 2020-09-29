@@ -35,4 +35,19 @@ public class Posting {
 	{
 		return String.valueOf(mDocumentId);
 	}
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof Posting)) {
+            return false;
+        }
+
+        Posting posting = (Posting) obj;
+        return mDocumentId == posting.getDocumentId() &&
+                mPositions.equals(posting.getPositions());
+	}
 }
