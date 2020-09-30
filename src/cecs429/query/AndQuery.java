@@ -100,28 +100,42 @@ public class AndQuery implements Query {
 
 	private List<Posting> notMerge(List<Posting> list, List<Posting> notList)
 	{	
-		// Get the intersection between 2 lists
-		List<Posting> intersection = andMerge(list, notList);
-		
-		if(intersection != null)
-		{
-			// If the intersection list is not null
-			// The result should be whatever the intersection does not have but the notList has
-			List<Posting> result = new ArrayList<Posting>();
-			
-			for(Posting p: list)
-			{
-				if(!intersection.contains(p))
-				{
-					result.add(p);
-				}
-			}
-			return result;
-		}
-		else
+		if(list == null || notList == null)
 		{
 			return null;
-		}  
+		}
+
+		List<Posting> result = new ArrayList<Posting>();
+		
+		int i = 0;
+        int j = 0;
         
+        while (i < list.size() && j < notList.size()) 
+        {
+        	if(list.get(i).getDocumentId() == notList.get(j).getDocumentId())
+        	{
+        		i++;
+        		j++;
+        	}
+        	else if(list.get(i).getDocumentId() < notList.get(j).getDocumentId())
+        	{
+        		
+        		result.add(list.get(i));
+        		i++;
+        	}
+        	else
+        	{
+        		j++;
+        	}
+        }
+        
+        // Append the longer list to the results
+        while (i < list.size())
+        {
+        	result.add(list.get(i));
+            i++;
+        }
+        
+        return result;
 	}
 }
