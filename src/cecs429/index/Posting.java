@@ -30,11 +30,6 @@ public class Posting implements Comparable<Posting>{
 		return mPositions;
 	}
 	
-	@Override
-	public String toString()
-	{
-		return String.valueOf(mDocumentId);
-	}
 	
 	@Override
 	public boolean equals(Object obj)

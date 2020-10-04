@@ -3,10 +3,16 @@ package cecs429.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import cecs429.index.Posting;
 
 public class Operator 
 {
+	/**
+	 * Perform the "OR merge" on two ordered lists
+	 * @param <T>
+	 * @param list1 first list
+	 * @param list2 second list
+	 * @return the union of two input lists
+	 */
 	public static <T extends Comparable> List<T> orMerge(List<T> list1, List<T> list2)
 	{	
 		List<T> result = new ArrayList<T>();
@@ -51,6 +57,13 @@ public class Operator
 	}
 	
 	
+	/**
+	 * Perform the "AND merge" on two ordered lists
+	 * @param <T>
+	 * @param list1 first list
+	 * @param list2 second list
+	 * @return the intersection of two input lists
+	 */
 	public static <T extends Comparable> List<T> andMerge(List<T> list1, List<T> list2)
 	{
 		List<T> result = new ArrayList<T>();
@@ -79,6 +92,14 @@ public class Operator
         return result;
 	}
 	
+	
+	/**
+	 * Perform the "AND NOT merge" on two ordered lists
+	 * @param <T>
+	 * @param list
+	 * @param notList the list which contains all the elements to be negated
+	 * @return the list which contains all the elements that only appears in the list but not the notList
+	 */
 	public static <T extends Comparable> List<T> notMerge(List<T> list, List<T> notList)
 	{
 		List<T> result = new ArrayList<T>();
@@ -104,7 +125,7 @@ public class Operator
         	}
         }
         
-        // Append the longer list to the results
+        // Append the rest of the list to the result
         while (i < list.size())
         {
         	result.add(list.get(i));

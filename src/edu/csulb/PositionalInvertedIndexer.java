@@ -58,7 +58,6 @@ public class PositionalInvertedIndexer
 	        	System.out.println("Invalid selection. Program exist.");
 	        	System.exit(0);
 	        }
-	    
 		}
 	        
 	    // Print the selected directory path 

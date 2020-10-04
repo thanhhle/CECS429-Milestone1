@@ -15,10 +15,12 @@ public class KGramIndex
 	 * Constructs an empty index consists of a HashMap<K, v>
 	 * K is the k-gram
 	 * V is list of vocabulary types that contain that k-gram
+	 *
+	 * @param kValue the largest value for k for k-gram to be generated
 	 */
-	public KGramIndex(int maxK) {
+	public KGramIndex(int kValue) {
 		mMap = new HashMap<String, List<String>>();
-		mKValue = maxK;
+		mKValue = kValue;
 	}
 	
 	/**
@@ -78,6 +80,7 @@ public class KGramIndex
 		Collections.sort(candidates);
 		return candidates;
 	}
+	
 	
 	public int getKValue()
 	{
