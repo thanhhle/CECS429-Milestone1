@@ -52,12 +52,7 @@ public class KGramIndex
 	 */
 	private void addKGram(String kgram, String type)
 	{
-		List<String> candidates = mMap.get(kgram);
-		if(candidates == null)
-		{
-			candidates = new ArrayList<String>();
-		}
-		
+		List<String> candidates = mMap.get(kgram) != null ? mMap.get(kgram) : new ArrayList<String>();
 		if(!candidates.contains(type))
 		{
 			candidates.add(type);
@@ -77,8 +72,13 @@ public class KGramIndex
 	public List<String> getCandidates(String kgram)
 	{
 		List<String> candidates = mMap.get(kgram);
-		Collections.sort(candidates);
-		return candidates;
+		if(candidates != null)
+		{
+			Collections.sort(candidates);
+			return candidates;
+		}
+		
+		return new ArrayList<String>();
 	}
 	
 	

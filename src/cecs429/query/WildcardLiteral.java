@@ -1,7 +1,6 @@
 package cecs429.query;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
@@ -25,56 +24,47 @@ public class WildcardLiteral implements Query{
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
 	{	
+		List<Posting> result = new ArrayList<Posting>();
+		
 		// Generate the largest k-grams
 		List<String> kgrams = generateKGrams(mTerm, index.getKGramIndex().getKValue());
-		
-		
-		// Retrieve the list of vocabulary types for each k-gram
-		HashMap<String, List<String>> mMap = new HashMap<String, List<String>>();
 
-		for(String kgram: kgrams)
-		{
-			mMap.put(kgram, index.getKGramIndex().getCandidates(kgram));
-		}
-				
 		
-		// Intersect the list of vocabulary types for each k-gram
-		List<String> candidates = mMap.get(kgrams.get(0));
+		// Retrieve and intersect the list of vocabulary types for each k-gram
+		List<String> candidates = index.getKGramIndex().getCandidates(kgrams.get(0));
 		for(int i = 1; i < kgrams.size(); i++)
 		{
-			candidates = Operator.andMerge(candidates, mMap.get(kgrams.get(i)));
+			candidates = Operator.andMerge(candidates, index.getKGramIndex().getCandidates(kgrams.get(i)));
 		}
 		
-		
-		// Post-filtering to make sure candidates match the wildcard pattern
-		Iterator<String> iter = candidates.iterator();
-	    while (iter.hasNext()) {
-	      if (!iter.next().matches(mTerm.replace("*", ".*"))) {
-	        iter.remove();
-	      }
-	    }
-	    
-
-	    System.out.println("Candidates to be queried:");
+		System.out.println("Candidates to be queried:");
 		for(String s: candidates)
 		{
 			System.out.println(s);
 		}
-			
-	    
-		List<Posting> result = null;
 		
-	    // Or merge the postings for the processed term from each final wildcard candidate
-	    if(candidates.size() != 0)
-	    {
-	    	result = index.getPostings(processor.processToken(candidates.get(0)));
-	  
+		
+		if(candidates.size() > 0)
+		{
+			// Post-filtering to make sure candidates match the wildcard pattern
+			Iterator<String> iterator = candidates.iterator();
+		    while (iterator.hasNext()) 
+		    {
+		    	if (!iterator.next().matches(mTerm.replace("*", ".*"))) 
+		    	{
+		    		iterator.remove();
+		    	}
+		    }
+			
+			// Or merge the postings for the processed term from each final wildcard candidate
+			result = index.getPostings(processor.processToken(candidates.get(0)));
+			  
 	    	for(int i = 1; i < candidates.size(); i++)
 	    	{
 	    		result = Operator.orMerge(result, index.getPostings(processor.processToken(candidates.get(i))));
-	    	}
-	    }
-
+	    	}	
+		}
+		
 		return result;
 		
 	}
@@ -84,7 +74,7 @@ public class WildcardLiteral implements Query{
 		return mTerm;
 	}
 	
-	private List<String> generateKGrams(String term, int maxK)
+	private List<String> generateKGrams(String term, int kValue)
 	{
 		// Append "$" at the beginning and end of the wildcard
 		String modifiedTerm = term;
@@ -105,14 +95,14 @@ public class WildcardLiteral implements Query{
 		
 		for(String element: largestKGrams)
 		{
-			if(element.length() > maxK)
+			if(element.length() > kValue)
 			{
-				for(int i = 0; i + maxK <= element.length(); i++)
+				for(int i = 0; i + kValue <= element.length(); i++)
 				{
-					kgrams.add(element.substring(i, i + maxK));
+					kgrams.add(element.substring(i, i + kValue));
 				}
 			}
-			else
+			else if(element.length() > 0)
 			{
 				kgrams.add(element);
 			}
