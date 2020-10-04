@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A Posting encapulates a document ID associated with a search query component.
  */
-public class Posting {
+public class Posting implements Comparable<Posting>{
 	private int mDocumentId;
 	private List<Integer> mPositions;
 	
@@ -49,5 +49,12 @@ public class Posting {
         Posting posting = (Posting) obj;
         return mDocumentId == posting.getDocumentId() &&
                 mPositions.equals(posting.getPositions());
+	}
+
+	
+	@Override
+	public int compareTo(Posting p)
+	{
+		return this.mDocumentId - p.getDocumentId();
 	}
 }

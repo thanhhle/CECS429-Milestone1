@@ -5,9 +5,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-public class PositionalInvertedIndex implements Index {
-	// private final HashMap<String, HashSet<Integer>> mMap;
+public class PositionalInvertedIndex implements Index 
+{
 	private final HashMap<String, List<Posting>> mMap;
+	private final KGramIndex kgramIndex;
 	
 	/**
 	 * Constructs an empty index consists of a HashMap<K, v>
@@ -16,14 +17,19 @@ public class PositionalInvertedIndex implements Index {
 	 */
 	public PositionalInvertedIndex() {
 		mMap = new HashMap<String, List<Posting>>();
+		kgramIndex = new KGramIndex(3);
 	}
 	
 	/**
 	 * Associates the given documentId with the given term in the index.
 	 */
-	public void addTerm(List<String> list, int documentId, int position) {
+	public void addTerm(List<String> list, int documentId, int position) 
+	{
 		for(String term: list)
 		{
+			// Add term to the k-gram index
+			kgramIndex.addType(term);
+			
 			if(mMap.containsKey(term))
 			{
 				// If the term is already recorded in the index
@@ -60,24 +66,26 @@ public class PositionalInvertedIndex implements Index {
 	}
 	
 	@Override
-	public List<Posting> getPostings(String term) {
-		return mMap.get(term);
+	public List<Posting> getPostings(String term) 
+	{
+		return mMap.get(term) != null ? mMap.get(term) : new ArrayList<Posting>();
 	}
 	
 	
 	@Override
 	public List<Posting> getPostings(List<String> terms) {
-		List<Posting> list = new ArrayList<Posting>();
+		List<Posting> result = new ArrayList<Posting>();
 		for(String term: terms)
 		{
 			List<Posting> postings = mMap.get(term);
+			
 			if(postings != null)
 			{
-				list.addAll(postings);
+				result.addAll(postings);
 			}
 		}
 		
-		return list;
+		return result;
 	}
 	
 	
@@ -87,4 +95,11 @@ public class PositionalInvertedIndex implements Index {
 		Collections.sort(vocabulary);
 		return vocabulary;
 	}
+
+	@Override
+	public KGramIndex getKGramIndex() 
+	{	
+		return kgramIndex;
+	}
+	
 }

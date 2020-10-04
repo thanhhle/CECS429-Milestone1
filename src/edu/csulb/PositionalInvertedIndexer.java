@@ -5,6 +5,7 @@ import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 import cecs429.documents.FileDocument;
 import cecs429.index.Index;
+import cecs429.index.KGramIndex;
 import cecs429.index.PositionalInvertedIndex;
 import cecs429.index.Posting;
 import cecs429.query.BooleanQueryParser;
@@ -40,11 +41,9 @@ public class PositionalInvertedIndexer
 	
 	public static void main(String[] args)
 	{
-		scan = new Scanner(System.in);
 		directoryPath = "/Users/thanhle/Downloads/MobyDick10Chapters";
 		if(directoryPath == null)
 		{
-			/*
 			// Allow user to select a directory that they would like to index
 			JFileChooser fileChooser = new JFileChooser();
 	        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -59,7 +58,6 @@ public class PositionalInvertedIndexer
 	        	System.out.println("Invalid selection. Program exist.");
 	        	System.exit(0);
 	        }
-	        */
 	    
 		}
 	        
@@ -70,7 +68,8 @@ public class PositionalInvertedIndexer
 		DocumentCorpus corpus = DirectoryCorpus.loadDirectory(Paths.get(directoryPath).toAbsolutePath());
 		
 		// Prompt user to choose a token processor
-		processor = getTokenProcessor();
+		// processor = getTokenProcessor();
+		processor = new AdvancedTokenProcessor();
 		
 		// Build a positional inverted index and print indexing time
 		long startTime = System.currentTimeMillis();
@@ -89,7 +88,7 @@ public class PositionalInvertedIndexer
 		{
 			System.out.println("\nPlease enter a term to search: ");
 			String term = scan.nextLine();
-			
+				
 			if(term.startsWith(":q"))
 			{
 				System.out.println("\nProgram exits.");
@@ -138,40 +137,34 @@ public class PositionalInvertedIndexer
 				System.out.println("\nDocuments contain the query:");
 				List<Posting> postings = query.getPostings(index, processor);
 				
-				if(postings != null)
+				// Construct list of string to record file names returned from the query
+				List<FileDocument> files = new ArrayList<FileDocument>();
+				
+				// Output the names of the documents returned from the query, one per line
+				int count = 0;
+				for (Posting p: postings) 
 				{
-					// Construct list of string to record file names returned from the query
-					List<FileDocument> files = new ArrayList<FileDocument>();
+					FileDocument file = (FileDocument)corpus.getDocument(p.getDocumentId());
+					System.out.println(count++ + " - " + file.getTitle());
 					
-					// Output the names of the documents returned from the query, one per line
-					int count = 0;
-					for (Posting p: postings) 
-					{
-						FileDocument file = (FileDocument)corpus.getDocument(p.getDocumentId());
-						System.out.println(count++ + " - " + file.getTitle());
-						
-						files.add(file);
-					}
-					
-					// Output the number of documents returned from the query
-					System.out.println("\nNumber of documents returned from the query: " + postings.size());
-					
-					// Ask the user if they would like to select a document to view
-					System.out.println("\nDo you want to view a document? Enter Y for YES or anything else for NO");
-					String input = scan.nextLine().toLowerCase();
-					
-					// If the user selects a document to view, print the entire content of the document to the screen
-					if(input.equals("y"))
-					{	
-						viewDocumentsMatchTheQuery(files);
-					}
+					files.add(file);
 				}
-				else
-				{
-					System.out.println("\nNo document that match the query was found.");
-				}	
+				
+				// Output the number of documents returned from the query
+				System.out.println("\nNumber of documents returned from the query: " + postings.size());
+				
+				// Ask the user if they would like to select a document to view
+				System.out.println("\nDo you want to view a document? Enter Y for YES or anything else for NO");
+				String input = scan.nextLine().toLowerCase();
+				
+				// If the user selects a document to view, print the entire content of the document to the screen
+				if(input.equals("y"))
+				{	
+					viewDocumentsMatchTheQuery(files);
+				}
 			}
 		}
+		
 		scan.close();	
 	}
 	

@@ -29,28 +29,29 @@ public class AndQuery implements Query {
 		if(mChildren.get(0).isNegative())
 		{
 			// If the first literal is negative
-			result = notMerge(mChildren.get(1).getPostings(index, processor), result);
+			result = Operator.notMerge(mChildren.get(1).getPostings(index, processor), result);
 		}
 		else if(mChildren.get(1).isNegative())
 		{
 			// If the second literal is negative
-			result = notMerge(result, mChildren.get(1).getPostings(index, processor));
+			result = Operator.notMerge(result, mChildren.get(1).getPostings(index, processor));
 		}
 		else
 		{
 			// If both of 2 first literals are positive
-			result = andMerge(result, mChildren.get(1).getPostings(index, processor));
+			result = Operator.andMerge(result, mChildren.get(1).getPostings(index, processor));
 		}
+		
 		
 		for(int i = 2; i < mChildren.size(); i++)
 		{
 			if(mChildren.get(i).isNegative())
 			{
-				result = notMerge(result, mChildren.get(i).getPostings(index, processor));
+				result = Operator.notMerge(result, mChildren.get(i).getPostings(index, processor));
 			}
 			else
 			{
-				result = andMerge(result, mChildren.get(i).getPostings(index, processor));
+				result = Operator.andMerge(result, mChildren.get(i).getPostings(index, processor));
 			}
 		}
 
@@ -61,81 +62,5 @@ public class AndQuery implements Query {
 	public String toString() {
 		return
 		 String.join(" ", mChildren.stream().map(c -> c.toString()).collect(Collectors.toList()));
-	}
-
-	
-	private List<Posting> andMerge(List<Posting> list1, List<Posting> list2)
-	{
-		if(list1 == null || list2 == null)
-		{
-			return null;
-		}
-
-		List<Posting> result = new ArrayList<Posting>();
-		
-		int i = 0;
-        int j = 0;
-        
-        while (i < list1.size() && j < list2.size()) 
-        {
-        	if(list1.get(i).getDocumentId() == list2.get(j).getDocumentId())
-        	{
-        		result.add(list1.get(i));
-        		i++;
-        		j++;
-        	}
-        	else if(list1.get(i).getDocumentId() < list2.get(j).getDocumentId())
-        	{
-        		i++;
-        	}
-        	else
-        	{
-        		j++;
-        	}
-        }
-        
-        return result;
-	}
-	
-
-	private List<Posting> notMerge(List<Posting> list, List<Posting> notList)
-	{	
-		if(list == null || notList == null)
-		{
-			return null;
-		}
-
-		List<Posting> result = new ArrayList<Posting>();
-		
-		int i = 0;
-        int j = 0;
-        
-        while (i < list.size() && j < notList.size()) 
-        {
-        	if(list.get(i).getDocumentId() == notList.get(j).getDocumentId())
-        	{
-        		i++;
-        		j++;
-        	}
-        	else if(list.get(i).getDocumentId() < notList.get(j).getDocumentId())
-        	{
-        		
-        		result.add(list.get(i));
-        		i++;
-        	}
-        	else
-        	{
-        		j++;
-        	}
-        }
-        
-        // Append the longer list to the results
-        while (i < list.size())
-        {
-        	result.add(list.get(i));
-            i++;
-        }
-        
-        return result;
 	}
 }

@@ -21,4 +21,11 @@ public interface Index {
 	 * A (sorted) list of all terms in the index vocabulary.
 	 */
 	List<String> getVocabulary();
+	
+	
+	/**
+	 * Retrieve the K-gram index.
+	 */
+	KGramIndex getKGramIndex();
+
 }

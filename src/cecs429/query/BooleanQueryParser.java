@@ -156,12 +156,6 @@ public class BooleanQueryParser {
 			++startIndex;
 		}
 		
-		/*
-		TODO:
-		Instead of assuming that we only have single-term literals, modify this method so it will create a PhraseLiteral
-		object if the first non-space character you find is a double-quote ("). In this case, the literal is not ended
-		by the next space character, but by the next double-quote character.
-		 */
 		
 		// Create a PhraseLiteral object if the first non-space character is a double-quote (")
 		if(subquery.charAt(startIndex) == '"')
@@ -181,6 +175,24 @@ public class BooleanQueryParser {
 			return new Literal(
 			 new StringBounds(startIndex, lengthOut),
 			 new PhraseLiteral(subquery.substring(startIndex + 1, startIndex + lengthOut - 1)));
+		}
+		// Create a WildcardLiteral object if the token contains one or more * characters
+		else if(subquery.indexOf("*") >= 0)
+		{
+			// Locate the next space to find the end of this literal.
+			int nextSpace = subquery.indexOf(' ', startIndex);
+			if (nextSpace < 0) {
+				// No more literals in this subquery.
+				lengthOut = subLength - startIndex;
+			}
+			else {
+				lengthOut = nextSpace - startIndex;
+			}
+						
+			// This is a term literal containing a single term.
+			return new Literal(
+			 new StringBounds(startIndex, lengthOut),
+			 new WildcardLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
 		}
 		else
 		{
