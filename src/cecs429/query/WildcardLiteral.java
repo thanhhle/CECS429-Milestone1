@@ -10,20 +10,27 @@ import cecs429.index.Index;
 import cecs429.index.Posting;
 import cecs429.text.TokenProcessor;
 
-public class WildcardLiteral implements Query{
+public class WildcardLiteral implements Query
+{
 	private String mTerm;
 	
-	public WildcardLiteral(String term) {
+	
+	public WildcardLiteral(String term) 
+	{
 		mTerm = term;
 	}
 	
-	public String getTerm() {
+	
+	public String getTerm() 
+	{
 		return mTerm;
 	}
+	
 	
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
 	{	
+		System.out.println("WILDCARD");
 		List<Posting> result = new ArrayList<Posting>();
 		
 		// Generate the largest k-grams
@@ -42,7 +49,6 @@ public class WildcardLiteral implements Query{
 		{
 			System.out.println(s);
 		}
-		
 		
 		if(candidates.size() > 0)
 		{
@@ -66,13 +72,15 @@ public class WildcardLiteral implements Query{
 		}
 		
 		return result;
-		
 	}
 	
+	
 	@Override
-	public String toString() {
+	public String toString() 
+	{
 		return mTerm;
 	}
+	
 	
 	private List<String> generateKGrams(String term, int kValue)
 	{

@@ -7,45 +7,58 @@ import java.util.*;
 /**
  * An EnglishTokenStream creates tokens by splitting on whitespace.
  */
-public class EnglishTokenStream implements TokenStream {
+public class EnglishTokenStream implements TokenStream 
+{
 	private Reader mReader;
 	
-	private class EnglishTokenIterator implements Iterator<String> {
+	
+	private class EnglishTokenIterator implements Iterator<String> 
+	{
 		private Scanner mScanner;
 		
-		private EnglishTokenIterator() {
+		private EnglishTokenIterator() 
+		{
 			// A Scanner automatically tokenizes text by splitting on whitespace. By composing a Scanner we don't have to
 			// duplicate that behavior.
 			mScanner = new Scanner(mReader);
 		}
 	
 		@Override
-		public boolean hasNext() {
+		public boolean hasNext() 
+		{
 			return mScanner.hasNext();
 		}
 		
 		@Override
-		public String next() {
+		public String next() 
+		{
 			return mScanner.next();
 		}
 	}
 	
+	
 	/**
 	 * Constructs an EnglishTokenStream to create tokens from the given Reader.
 	 */
-	public EnglishTokenStream(Reader inputStream) {
+	public EnglishTokenStream(Reader inputStream) 
+	{
 		mReader = inputStream;
 	}
 	
+	
 	@Override
-	public Iterable<String> getTokens() {
+	public Iterable<String> getTokens() 
+	{
 		// Fancy trick to convert an Iterator to an Iterable.
 		return () -> new EnglishTokenIterator();
 	}
 
+	
 	@Override
-	public void close() throws IOException {
-		if (mReader != null) {
+	public void close() throws IOException 
+	{
+		if (mReader != null) 
+		{
 			mReader.close();
 		}
 	}

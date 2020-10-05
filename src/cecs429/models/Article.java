@@ -22,7 +22,8 @@ public class Article {
 	 * Return the title of the article
 	 * @return title
 	 */
-	public String getTitle() {
+	public String getTitle() 
+	{
 		return title;
 	}
 
@@ -30,7 +31,8 @@ public class Article {
 	 * Return content of the article
 	 * @return body
 	 */
-	public String getBody() {
+	public String getBody() 
+	{
 		return body;
 	}
 
@@ -38,7 +40,8 @@ public class Article {
 	 * Return the link of the article
 	 * @return url
 	 */
-	public String getUrl() {
+	public String getUrl() 
+	{
 		return url;
 	}
 }

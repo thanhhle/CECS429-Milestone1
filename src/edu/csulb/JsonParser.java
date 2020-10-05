@@ -14,8 +14,10 @@ import cecs429.models.Dataset;
 
 public class JsonParser {
 
-	public static void main(String[] args) {
-		try {
+	public static void main(String[] args) 
+	{
+		try 
+		{
 		    // Create Gson instance
 		    Gson gson = new Gson();
 
@@ -43,7 +45,9 @@ public class JsonParser {
 		    		// Close the writer
 		    		writer.close();
 		    		
-		    	} catch (Exception e) {
+		    	} 
+		    	catch (Exception e) 
+		    	{
 		    		throw new RuntimeException(e);
 		    	}
 		    }
@@ -51,10 +55,11 @@ public class JsonParser {
 		    // Close the reader
 		    reader.close();
 
-		} catch (IOException e) {
+		} 
+		catch (IOException e) 
+		{
 			throw new RuntimeException(e);
 		}
 
 	}
-
 }

@@ -12,20 +12,23 @@ import java.util.stream.Collectors;
 /**
  * An OrQuery composes other Query objects and merges their postings with a union-type operation.
  */
-public class OrQuery implements Query {
+public class OrQuery implements Query 
+{
 	// The components of the Or query.
 	private List<Query> mChildren;
 	
-	public OrQuery(Collection<Query> children) {
+	
+	public OrQuery(Collection<Query> children) 
+	{
 		mChildren = new ArrayList<>(children);	
 	}
 	
+	
 	@Override
-	public List<Posting> getPostings(Index index, TokenProcessor processor) {
+	public List<Posting> getPostings(Index index, TokenProcessor processor) 
+	{
 		List<Posting> result = mChildren.get(0).getPostings(index, processor);
 		
-		// TODO: program the merge for an OrQuery, by gathering the postings of the composed Query children and
-		// unioning the resulting postings.
 		for(int i = 1; i < mChildren.size(); i++)
 		{
 			result = Operator.orMerge(result, mChildren.get(i).getPostings(index, processor));
@@ -34,8 +37,10 @@ public class OrQuery implements Query {
 		return result;
 	}
 	
+	
 	@Override
-	public String toString() {
+	public String toString() 
+	{
 		// Returns a string of the form "[SUBQUERY] + [SUBQUERY] + [SUBQUERY]"
 		return "(" +
 		 String.join(" + ", mChildren.stream().map(c -> c.toString()).collect(Collectors.toList()))

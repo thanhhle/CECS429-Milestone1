@@ -12,18 +12,20 @@ import java.util.stream.Collectors;
 /**
  * An AndQuery composes other Query objects and merges their postings in an intersection-like operation.
  */
-public class AndQuery implements Query {
+public class AndQuery implements Query 
+{
 	private List<Query> mChildren;
 	
-	public AndQuery(Collection<Query> children) {
+	
+	public AndQuery(Collection<Query> children) 
+	{
 		mChildren = new ArrayList<>(children);
 	}
+	
 	
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
 	{
-		// TODO: program the merge for an AndQuery, by gathering the postings of the composed QueryComponents and
-		// intersecting the resulting postings.
 		List<Posting> result = mChildren.get(0).getPostings(index, processor);;
 		
 		if(mChildren.get(0).isNegative())
@@ -58,8 +60,10 @@ public class AndQuery implements Query {
 		return result;
 	}
 	
+	
 	@Override
-	public String toString() {
+	public String toString() 
+	{
 		return
 		 String.join(" ", mChildren.stream().map(c -> c.toString()).collect(Collectors.toList()));
 	}

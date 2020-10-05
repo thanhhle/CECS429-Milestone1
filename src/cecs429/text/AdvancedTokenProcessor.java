@@ -7,8 +7,10 @@ import java.util.List;
  * A BasicTokenProcessor creates terms from tokens by removing all non-alphanumeric characters from the token, and
  * converting it to all lowercase.
  */
-public class AdvancedTokenProcessor implements TokenProcessor {
+public class AdvancedTokenProcessor implements TokenProcessor 
+{
 	private Normalizer normalizer = new Normalizer();
+	
 	
 	@Override
 	public List<String> processToken(String token) 
@@ -45,7 +47,6 @@ public class AdvancedTokenProcessor implements TokenProcessor {
 					
 					// Add to the return list
 					list.add(s);
-					
 				}	
 			}
 		

@@ -9,52 +9,70 @@ import com.google.gson.Gson;
 
 import cecs429.models.Article;
 
-public class JsonFileDocument implements FileDocument {
+public class JsonFileDocument implements FileDocument 
+{
 	private int mDocumentId;
 	private Path mFilePath;
 	private String mTitle;
+	
 	
 	/**
 	 * Constructs a TextFileDocument with the given document ID representing the file at the given
 	 * absolute file path.
 	 */
-	public JsonFileDocument(int id, Path absoluteFilePath) {
+	public JsonFileDocument(int id, Path absoluteFilePath) 
+	{
 		mDocumentId = id;
 		mFilePath = absoluteFilePath;
 		mTitle = getArticle().getTitle();
 	}
 	
+	
 	@Override
-	public Path getFilePath() {
+	public Path getFilePath() 
+	{
 		return mFilePath;
 	}
 	
+	
 	@Override
-	public int getId() {
+	public int getId() 
+	{
 		return mDocumentId;
 	}
 	
+	
 	@Override
-	public Reader getContent() {
-		try {
+	public Reader getContent() 
+	{
+		try 
+		{
 			return Files.newBufferedReader(mFilePath);
-		} catch (IOException e) {
+		} 
+		catch (IOException e) 
+		{
 			throw new RuntimeException(e);
 		}
 	}
 	
+	
 	@Override
-	public String getTitle() {
+	public String getTitle() 
+	{
 		return mTitle;
 	}
 	
-	public static FileDocument loadJsonFileDocument(Path absolutePath, int documentId) {
+	
+	public static FileDocument loadJsonFileDocument(Path absolutePath, int documentId)
+	{
 		return new JsonFileDocument(documentId, absolutePath);
 	}
 	
+	
 	private Article getArticle()
 	{
-		try {
+		try 
+		{
 			// Create Gson instance
 		    Gson gson = new Gson();
 
@@ -69,7 +87,9 @@ public class JsonFileDocument implements FileDocument {
 		    
 			return article;
 			
-		} catch (IOException e) {
+		}
+		catch (IOException e) 
+		{
 			throw new RuntimeException(e);
 		}
 	}

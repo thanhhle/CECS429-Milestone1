@@ -5,7 +5,6 @@ import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 import cecs429.documents.FileDocument;
 import cecs429.index.Index;
-import cecs429.index.KGramIndex;
 import cecs429.index.PositionalInvertedIndex;
 import cecs429.index.Posting;
 import cecs429.query.BooleanQueryParser;
@@ -18,11 +17,7 @@ import cecs429.text.TokenProcessor;
 import cecs429.text.TokenStream;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,18 +25,17 @@ import java.util.Scanner;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.filechooser.FileFilter;
 
 
 public class PositionalInvertedIndexer 
 {	
 	private static String directoryPath;
 	private static TokenProcessor processor;
-	private  static Scanner scan = new Scanner(System.in);;
+	private static Scanner scan = new Scanner(System.in);;
 	
 	public static void main(String[] args)
 	{
-		directoryPath = "/Users/thanhle/Downloads/MobyDick10Chapters";
+		// directoryPath = "/Users/thanhle/Downloads/MobyDick10Chapters";
 		if(directoryPath == null)
 		{
 			// Allow user to select a directory that they would like to index
@@ -67,10 +61,10 @@ public class PositionalInvertedIndexer
 		DocumentCorpus corpus = DirectoryCorpus.loadDirectory(Paths.get(directoryPath).toAbsolutePath());
 		
 		// Prompt user to choose a token processor
-		// processor = getTokenProcessor();
-		processor = new AdvancedTokenProcessor();
+		processor = getTokenProcessor();
 		
 		// Build a positional inverted index and print indexing time
+		System.out.println("\nIndexing...");
 		long startTime = System.currentTimeMillis();
 		Index index = indexCorpus(corpus);
 		long endTime = System.currentTimeMillis();
@@ -88,22 +82,33 @@ public class PositionalInvertedIndexer
 			System.out.println("\nPlease enter a term to search: ");
 			String term = scan.nextLine();
 				
+			// If the input term starts with :q
+			// Exit the program
 			if(term.startsWith(":q"))
 			{
 				System.out.println("\nProgram exits.");
 				break;
 			}
+			
+			// If the input term starts with :stem
+			// Take the token string and stem it, then print the stemmed term
 			else if(term.startsWith(":stem"))
 			{
 				Normalizer normalizer = new Normalizer();
 				term = term.substring(6, term.length());
 				System.out.println(term + " -> " + normalizer.stemToken(term));
 			}
+			
+			// If the input term starts with :index
+			// Index the folder specified by directoryname and then begin querying it, effectively restarting the program
 			else if(term.startsWith(":index"))
 			{
 				directoryPath = term.substring(7, term.length());
 				main(new String[] {});
 			}
+			
+			// If the input term starts with :vocab
+			// Print the first 1000 terms in the vocabulary of the corpus sorted alphabetically and the count of the total number of vocabulary terms
 			else if(term.startsWith(":vocab"))
 			{
 				List<String> vocab = index.getVocabulary();
@@ -113,19 +118,7 @@ public class PositionalInvertedIndexer
 				}
 				System.out.println("\nTotal number of vocabulary terms: " + vocab.size());
 			}
-			else if(term.startsWith(":process"))
-			{
-				term = term.substring(9, term.length());
-				List<String> list = processor.processToken(term);
-				for(String s: list)
-				{
-					System.out.println(s);
-				}
-			}
-			else if(term.startsWith(":changeTokenProcessor"))
-			{
-				processor = getTokenProcessor();
-			}
+
 			else
 			{
 				// Parse the input into appropriate Query object
@@ -191,9 +184,13 @@ public class PositionalInvertedIndexer
 		}
 		
 		if(processorId == 1)
+		{
 			return new BasicTokenProcessor();
+		}
 		else
+		{
 			return new AdvancedTokenProcessor();
+		}
 	}
 	
 	
@@ -211,24 +208,28 @@ public class PositionalInvertedIndexer
 		// Iterate through the documents, tokenize the terms and add terms to the index with addPosting.
 		for(Document doc: documents)
 		{	
-			try {
+			try 
+			{
 				TokenStream tokenStream = new EnglishTokenStream(doc.getContent());
+				
 				int position = 0;
 				for(String token: tokenStream.getTokens())
 				{
 					index.addTerm(processor.processToken(token), doc.getId(), position);
 					position++;
 				}
+				
 				tokenStream.close();
-			} catch (IOException e) {
+				
+			} 
+			catch (IOException e) 
+			{
 				throw new RuntimeException(e);
 			}
-			
 		}
 			
 		return index;
 	}
-	
 	
 	
 	/*
@@ -265,65 +266,5 @@ public class PositionalInvertedIndexer
 			}
 			
 		} while(!validChoice);
-		
-		/*
-		// Allow user to select a file from the directoryPath which has name that is in the fileName
-		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		fileChooser.setCurrentDirectory(new File(directoryPath));
-		
-		fileChooser.setFileFilter(new FileFilter() 
-			{
-				@Override
-				public boolean accept(File file) {
-					for(FileDocument document: files)
-					{
-						if(document.getFilePath().toString().equals(file.getPath()))
-						{
-							return true;
-						}
-					}
-			        return false;
-			    }
-
-				@Override
-				public String getDescription() {
-					return "Files match the query";
-				}
-				
-			});
-		
-		int option = fileChooser.showDialog(new JFrame(), "View File");
-			
-	    if(option == JFileChooser.APPROVE_OPTION)
-	    {
-	    	// Get the selected file and print its content
-	       	File file = fileChooser.getSelectedFile();
-			try {
-				FileReader fr = new FileReader(file);
-				BufferedReader br = new BufferedReader(fr);
-				String buffer = br.readLine();
-
-		        while (buffer != null)
-		        {
-			       	System.out.println(buffer);
-			       	buffer = br.readLine();
-		        }
-			       					        
-			    br.close();
-			    fr.close();
-					
-			} catch (FileNotFoundException e) {	
-				throw new RuntimeException(e);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}			           
-        }
-	    else
-	    {
-	        System.out.println("Invalid selection. Program exist.");
-	       	System.exit(0);
-	    }
-	    */
 	}
 }

@@ -135,5 +135,4 @@ public class Operator
         return result;
 	}
 	
-	
 }

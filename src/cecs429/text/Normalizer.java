@@ -33,6 +33,7 @@ public class Normalizer {
 		return token.replaceAll("^\\W*", "").replaceAll("\\W*$", "");
 	}
 	
+	
 	/**
 	 * Remove all apostropes or quotation marks (single or double quotes) from anywhere in the string
 	 * @param token the string
@@ -49,12 +50,11 @@ public class Normalizer {
 	 * @param token the string
 	 * @return
 	 */
-	public String stemToken(String token){
+	public String stemToken(String token)
+	{
 		 SnowballStemmer stemmer = new englishStemmer();
 		 stemmer.setCurrent(token);
 		 stemmer.stem();
 		 return stemmer.getCurrent();  
 	}
-
-	
 }

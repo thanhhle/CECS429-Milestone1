@@ -12,34 +12,38 @@ import java.util.List;
 /**
  * Represents a phrase literal consisting of one or more terms that must occur in sequence.
  */
-public class PhraseLiteral implements Query {
+public class PhraseLiteral implements Query 
+{
 	// The list of individual terms in the phrase.
 	private List<Query> mChildren = new ArrayList<>();
+	
 	
 	/**
 	 * Constructs a PhraseLiteral with the given individual phrase terms.
 	 */
-	public PhraseLiteral(Collection<Query> children) {	
+	public PhraseLiteral(Collection<Query> children)
+	{	
 		mChildren = new ArrayList<>(children);	
 	}
+	
 	
 	/**
 	 * Constructs a PhraseLiteral given a string with one or more individual terms separated by spaces.
 	 */
-	public PhraseLiteral(String terms) {
+	public PhraseLiteral(String terms) 
+	{
 		for(String s: Arrays.asList(terms.split(" ")))
 		{
 			mChildren.add(new TermLiteral(s));
 		}
 	}
 	
+	
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
 	{
 		List<Posting> result = mChildren.get(0).getPostings(index, processor);
 		
-		// TODO: program this method. Retrieve the postings for the individual terms in the phrase,
-		// and positional merge them together.
 		int distance = 1;
 		for(int i = 1; i < mChildren.size(); i++)
 		{
@@ -50,8 +54,10 @@ public class PhraseLiteral implements Query {
 		return result;
 	}
 	
+	
 	@Override
-	public String toString() {
+	public String toString() 
+	{
 		String s = "";
 		for(Query query: mChildren)
 		{
@@ -60,6 +66,8 @@ public class PhraseLiteral implements Query {
 		return s;
 	}
 	
+	
+	// Positional merge routine
 	private List<Posting> positionalMerge(List<Posting> list1, List<Posting> list2, int distance)
 	{
 		if(list1 == null || list2 == null)

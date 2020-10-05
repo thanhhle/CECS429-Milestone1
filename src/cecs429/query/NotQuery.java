@@ -9,25 +9,34 @@ import java.util.List;
 /**
  * An AndQuery composes other Query objects and merges their postings in an intersection-like operation.
  */
-public class NotQuery implements Query {
+public class NotQuery implements Query 
+{
 	private Query mQuery;
 	
-	public NotQuery(Query query) {
+	
+	public NotQuery(Query query) 
+	{
 		mQuery = new TermLiteral(query.toString().substring(1));
 	}
 	
+	
 	@Override
-	public List<Posting> getPostings(Index index, TokenProcessor processor) {
+	public List<Posting> getPostings(Index index, TokenProcessor processor) 
+	{
 		return mQuery.getPostings(index, processor);
 	}
 	
+	
 	@Override
-	public String toString() {
+	public String toString() 
+	{
 		return mQuery.toString();
 	}
 	
+	
 	@Override
-	public boolean isNegative() {
+	public boolean isNegative() 
+	{
 		return true;
 	}
 }

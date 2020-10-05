@@ -10,15 +10,18 @@ public class PositionalInvertedIndex implements Index
 	private final HashMap<String, List<Posting>> mMap;
 	private final KGramIndex kgramIndex;
 	
+	
 	/**
 	 * Constructs an empty index consists of a HashMap<K, v>
 	 * K is the vocabulary appears in the corpus
 	 * V is list of document ID where the K appears
 	 */
-	public PositionalInvertedIndex() {
+	public PositionalInvertedIndex() 
+	{
 		mMap = new HashMap<String, List<Posting>>();
 		kgramIndex = new KGramIndex(3);
 	}
+	
 	
 	/**
 	 * Associates the given documentId with the given term in the index.
@@ -64,6 +67,7 @@ public class PositionalInvertedIndex implements Index
 			}	
 		}
 	}
+	
 	
 	@Override
 	public List<Posting> getPostings(String term) 

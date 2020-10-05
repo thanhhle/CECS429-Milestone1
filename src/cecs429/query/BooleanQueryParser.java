@@ -7,37 +7,45 @@ import java.util.List;
  * Parses boolean queries according to the base requirements of the CECS 429 project.
  * Does not handle phrase queries, NOT queries, NEAR queries, or wildcard queries... yet.
  */
-public class BooleanQueryParser {
+public class BooleanQueryParser 
+{
 	/**
 	 * Identifies a portion of a string with a starting index and a length.
 	 */
-	private static class StringBounds {
+	private static class StringBounds 
+	{
 		int start;
 		int length;
 		
-		StringBounds(int start, int length) {
+		StringBounds(int start, int length) 
+		{
 			this.start = start;
 			this.length = length;
 		}
 	}
 	
+	
 	/**
 	 * Encapsulates a Query and the StringBounds that led to its parsing.
 	 */
-	private static class Literal {
+	private static class Literal 
+	{
 		StringBounds bounds;
 		Query literalComponent;
 		
-		Literal(StringBounds bounds, Query literalComponent) {
+		Literal(StringBounds bounds, Query literalComponent) 
+		{
 			this.bounds = bounds;
 			this.literalComponent = literalComponent;
 		}
 	}
 	
+	
 	/**
 	 * Given a boolean query, parses and returns a tree of Query objects representing the query.
 	 */
-	public Query parseQuery(String query) {
+	public Query parseQuery(String query) 
+	{
 		int start = 0;
 		
 		// General routine: scan the query to identify a literal, and put that literal into a list.
@@ -58,7 +66,8 @@ public class BooleanQueryParser {
 			// Store all the individual components of this subquery.
 			List<Query> subqueryLiterals = new ArrayList<>(0);
 
-			do {
+			do 
+			{
 				// Extract the next literal from the subquery.
 				Literal lit = findNextLiteral(subquery, subStart);
 
@@ -83,10 +92,12 @@ public class BooleanQueryParser {
 			
 			// If there was only one literal in the subquery, we don't need to AND it with anything --
 			// its component can go straight into the list.
-			if (subqueryLiterals.size() == 1) {
+			if (subqueryLiterals.size() == 1) 
+			{
 				allSubqueries.add(subqueryLiterals.get(0));
 			}
-			else {
+			else 
+			{
 				// With more than one literal, we must wrap them in an AndQuery component.
 				allSubqueries.add(new AndQuery(subqueryLiterals));
 			}
@@ -95,45 +106,54 @@ public class BooleanQueryParser {
 		
 		// After processing all subqueries, we either have a single component or multiple components
 		// that must be combined with an OrQuery.
-		if (allSubqueries.size() == 1) {
+		if (allSubqueries.size() == 1) 
+		{
 			return allSubqueries.get(0);
 		}
-		else if (allSubqueries.size() > 1) {
+		else if (allSubqueries.size() > 1) 
+		{
 			return new OrQuery(allSubqueries);
 		}
-		else {
+		else 
+		{
 			return null;
 		}
 	}
+	
 	
 	/**
 	 * Locates the start index and length of the next subquery in the given query string,
 	 * starting at the given index.
 	 */
-	private StringBounds findNextSubquery(String query, int startIndex) {
+	private StringBounds findNextSubquery(String query, int startIndex) 
+	{
 		int lengthOut;
 		
 		// Find the start of the next subquery by skipping spaces and + signs.
 		char test = query.charAt(startIndex);
-		while (test == ' ' || test == '+') {
+		while (test == ' ' || test == '+') 
+		{
 			test = query.charAt(++startIndex);
 		}
 		
 		// Find the end of the next subquery.
 		int nextPlus = query.indexOf('+', startIndex + 1);
 
-		if (nextPlus < 0) {
+		if (nextPlus < 0) 
+		{
 			// If there is no other + sign, then this is the final subquery in the
 			// query string.
 			lengthOut = query.length() - startIndex;
 		}
-		else {
+		else 
+		{
 			// If there is another + sign, then the length of this subquery goes up
 			// to the next + sign.
 		
 			// Move nextPlus backwards until finding a non-space non-plus character.
 			test = query.charAt(nextPlus);
-			while (test == ' ' || test == '+') {
+			while (test == ' ' || test == '+') 
+			{
 				test = query.charAt(--nextPlus);
 			}
 			
@@ -144,15 +164,18 @@ public class BooleanQueryParser {
 		return new StringBounds(startIndex, lengthOut);
 	}
 	
+	
 	/**
 	 * Locates and returns the next literal from the given subquery string.
 	 */
-	private Literal findNextLiteral(String subquery, int startIndex) {
+	private Literal findNextLiteral(String subquery, int startIndex) 
+	{
 		int subLength = subquery.length();
 		int lengthOut;
 		
 		// Skip past white space.
-		while (subquery.charAt(startIndex) == ' ') {
+		while (subquery.charAt(startIndex) == ' ') 
+		{
 			++startIndex;
 		}
 		
@@ -163,11 +186,13 @@ public class BooleanQueryParser {
 			// Locate the next space to find the end of this literal.
 			int nextSpace = subquery.indexOf('"', startIndex + 1) + 1;
 			
-			if (nextSpace < 0) {
+			if (nextSpace < 0) 
+			{
 				// No more literals in this subquery.
 				lengthOut = subLength - startIndex;
 			}
-			else {
+			else 
+			{
 				lengthOut = nextSpace - startIndex;
 			}
 			
@@ -176,16 +201,19 @@ public class BooleanQueryParser {
 			 new StringBounds(startIndex, lengthOut),
 			 new PhraseLiteral(subquery.substring(startIndex + 1, startIndex + lengthOut - 1)));
 		}
+		
 		// Create a WildcardLiteral object if the token contains one or more * characters
-		else if(subquery.indexOf("*") >= 0)
+		else if(subquery.substring(startIndex).indexOf('*') >= 0)
 		{
 			// Locate the next space to find the end of this literal.
 			int nextSpace = subquery.indexOf(' ', startIndex);
-			if (nextSpace < 0) {
+			if (nextSpace < 0) 
+			{
 				// No more literals in this subquery.
 				lengthOut = subLength - startIndex;
 			}
-			else {
+			else 
+			{
 				lengthOut = nextSpace - startIndex;
 			}
 						
@@ -194,15 +222,19 @@ public class BooleanQueryParser {
 			 new StringBounds(startIndex, lengthOut),
 			 new WildcardLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
 		}
+		
+		// Create a TermLiteral in any other case
 		else
 		{
 			// Locate the next space to find the end of this literal.
 			int nextSpace = subquery.indexOf(' ', startIndex);
-			if (nextSpace < 0) {
+			if (nextSpace < 0) 
+			{
 				// No more literals in this subquery.
 				lengthOut = subLength - startIndex;
 			}
-			else {
+			else 
+			{
 				lengthOut = nextSpace - startIndex;
 			}
 			
