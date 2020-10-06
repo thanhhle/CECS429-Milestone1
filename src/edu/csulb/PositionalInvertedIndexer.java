@@ -135,6 +135,13 @@ public class PositionalInvertedIndexer
 				}
 				System.out.println("\nTotal number of vocabulary terms: " + vocab.size());
 			}
+			
+			// If the input term starts with :processor
+			// Allow user to chnage the TokenProcessor at runtime
+			else if(term.startsWith(":processor"))
+			{
+				processor = getTokenProcessor();
+			}
 
 			else
 			{

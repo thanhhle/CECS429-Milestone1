@@ -34,7 +34,14 @@ public class PhraseLiteral implements Query
 	{
 		for(String s: Arrays.asList(terms.split(" ")))
 		{
-			mChildren.add(new TermLiteral(s));
+			if(s.contains("*"))
+			{
+				mChildren.add(new WildcardLiteral(s));
+			}
+			else
+			{
+				mChildren.add(new TermLiteral(s));
+			}
 		}
 	}
 	
