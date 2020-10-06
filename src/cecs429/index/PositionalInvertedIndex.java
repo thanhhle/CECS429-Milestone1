@@ -3,12 +3,23 @@ package cecs429.index;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import cecs429.text.BasicTokenProcessor;
+import cecs429.text.Normalizer;
+import cecs429.text.TokenProcessor;
 
 public class PositionalInvertedIndex implements Index 
 {
 	private final HashMap<String, List<Posting>> mMap;
-	private final KGramIndex kgramIndex;
+	
+	private final Normalizer normalizer = new Normalizer();
+	
+	private SortedSet<String> tokens;
+	private KGramIndex kgramIndex;
 	
 	
 	/**
@@ -20,19 +31,29 @@ public class PositionalInvertedIndex implements Index
 	{
 		mMap = new HashMap<String, List<Posting>>();
 		kgramIndex = new KGramIndex(3);
+		tokens = new TreeSet<String>();
 	}
 	
 	
 	/**
+	 * Process the token into term
 	 * Associates the given documentId with the given term in the index.
 	 */
-	public void addTerm(List<String> list, int documentId, int position) 
+	public void addToken(String token, TokenProcessor processor, int documentId, int position) 
 	{
-		for(String term: list)
-		{
-			// Add term to the k-gram index
-			kgramIndex.addType(term);
-			
+		// Add the token to a TreeSet to build k-gram index later
+		String temp = normalizer.removeNonAlphanumeric(token).toLowerCase();
+		temp = normalizer.removeApostropes(temp);
+		tokens.add(temp);
+		
+		
+		// tokens.add(token.replaceAll("\\W", "").toLowerCase());
+		
+		// Process the token and add it to the index
+		List<String> processedTerms = processor.processToken(token);
+		
+		for(String term: processedTerms)
+		{			
 			if(mMap.containsKey(term))
 			{
 				// If the term is already recorded in the index
@@ -65,6 +86,15 @@ public class PositionalInvertedIndex implements Index
 				// Add the new constructed list to the associated term key
 				mMap.put(term, postings);
 			}	
+		}
+	}
+	
+	
+	public void buildKGramIndex()
+	{
+		for(String token: tokens)
+		{
+			kgramIndex.addType(token);
 		}
 	}
 	

@@ -19,21 +19,22 @@ public class Normalizer {
 		int i = 0;
 		int j = token.length() - 1;
 		
-		while(!isAlphaNumeric(String.valueOf(token.charAt(i)))) {
+		while(!isAlphaNumeric(String.valueOf(token.charAt(i))) && i <= j) {
 			i++;
 		}
 		
-		while(!isAlphaNumeric(String.valueOf(token.charAt(j)))) {
+		while(!isAlphaNumeric(String.valueOf(token.charAt(j))) && j > i) {
 			j--;
 		}
 		
-		return token.substring(i, j+1);
+		return token.substring(i, j + 1);
 		*/
+		
 		
 		return token.replaceAll("^\\W*", "").replaceAll("\\W*$", "");
 	}
 	
-	
+
 	/**
 	 * Remove all apostropes or quotation marks (single or double quotes) from anywhere in the string
 	 * @param token the string
@@ -57,4 +58,11 @@ public class Normalizer {
 		 stemmer.stem();
 		 return stemmer.getCurrent();  
 	}
+	
+	
+	private boolean isAlphaNumeric(String s) 
+	{
+		return s != null && s.matches("^[a-zA-Z0-9]*$");
+	}
+
 }

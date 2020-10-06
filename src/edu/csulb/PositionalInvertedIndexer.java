@@ -63,12 +63,24 @@ public class PositionalInvertedIndexer
 		// Prompt user to choose a token processor
 		processor = getTokenProcessor();
 		
-		// Build a positional inverted index and print indexing time
-		System.out.println("\nIndexing...");
+		// Start counting time to index the corpus 
 		long startTime = System.currentTimeMillis();
+		
+		// Build a positional inverted index 
+		System.out.println("\nIndexing \"" + directoryPath + "\"...");
 		Index index = indexCorpus(corpus);
+		System.out.println("Done");
+		
+		// Build a k-gram index
+		System.out.println("\nBuilding kgram index...");
+		index.buildKGramIndex();
+		System.out.println(index.getKGramIndex().getKGrams().size() + " distinct kgrams in the index");
+		
+		// Stop counting time to index the corpus
 		long endTime = System.currentTimeMillis();
-		System.out.println("\nIndexing time: " + (endTime - startTime)/1000 + " seconds");
+		
+		// Print indexing time
+		System.out.println("\nTime to index = " + (endTime - startTime) + " milliseconds");
 		
 		
 		// Handle some "special" queries that do not represent information needs.
@@ -81,10 +93,15 @@ public class PositionalInvertedIndexer
 		{
 			System.out.println("\nPlease enter a term to search: ");
 			String term = scan.nextLine();
+			
+			if(term.length() == 0)
+			{
+				// Do nothing if user didn't input a query
+			}
 				
 			// If the input term starts with :q
 			// Exit the program
-			if(term.startsWith(":q"))
+			else if(term.startsWith(":q"))
 			{
 				System.out.println("\nProgram exits.");
 				break;
@@ -126,20 +143,20 @@ public class PositionalInvertedIndexer
 				Query query = queryParser.parseQuery(term);
 					
 				// Get a list of postings for the documents that match the query
-				System.out.println("\nDocuments contain the query:");
 				List<Posting> postings = query.getPostings(index, processor);
 				
 				// Construct list of string to record file names returned from the query
 				List<FileDocument> files = new ArrayList<FileDocument>();
 				
 				// Output the names of the documents returned from the query, one per line
-				int count = 0;
-				for (Posting p: postings) 
+				System.out.println("\nDocuments contain the query:");
+				int count = 1;
+				for (Posting p: postings)
 				{
 					FileDocument file = (FileDocument)corpus.getDocument(p.getDocumentId());
-					System.out.println(count++ + " - " + file.getTitle());
-					
+					System.out.println(count + " - " + file.getTitle() + " (\"" + file.getFilePath().getFileName() + "\")");
 					files.add(file);
+					count++;
 				}
 				
 				// Output the number of documents returned from the query
@@ -180,7 +197,6 @@ public class PositionalInvertedIndexer
 			{
 				break;
 			}
-			
 		}
 		
 		if(processorId == 1)
@@ -215,7 +231,7 @@ public class PositionalInvertedIndexer
 				int position = 0;
 				for(String token: tokenStream.getTokens())
 				{
-					index.addTerm(processor.processToken(token), doc.getId(), position);
+					index.addToken(token, processor, doc.getId(), position);
 					position++;
 				}
 				
@@ -243,7 +259,7 @@ public class PositionalInvertedIndexer
 			System.out.println("\nPlease enter the document ID of the document to be viewed:");
 			int documentId = Integer.parseInt(scan.nextLine());
 			
-			if(documentId > -1 && documentId < files.size())
+			if(documentId > 0 && documentId <= files.size())
 			{
 				validChoice = true;
 				

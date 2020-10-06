@@ -30,9 +30,9 @@ public class KGramIndex
 	 * Generate the k-grams of the given vocabulary type and add them to the index
 	 * @param type the vocabulary type
 	 */
-	public void addType(String type)
-	{
-		String modifiedType = "$" + type + "$";
+    public void addType(String type) 
+    {
+    	String modifiedType = "$" + type + "$";
 		
 		for(int k = 1; k <= mKValue; k++)
 		{
@@ -46,23 +46,26 @@ public class KGramIndex
 				}
 			}
 		}	
-	}
-	
-	
-	/**
+    }
+
+    /**
 	 * Add k-gram to the index
 	 * @param kgram the k-gram
 	 * @param type the vocabulary type that contains k-gram
 	 */
-	private void addKGram(String kgram, String type)
-	{
-		List<String> candidates = mMap.get(kgram) != null ? mMap.get(kgram) : new ArrayList<String>();
-		if(!candidates.contains(type))
-		{
-			candidates.add(type);
-			mMap.put(kgram, candidates);
-		}
-	}
+    private void addKGram(String kgram, String type) 
+    {
+        if (mMap.containsKey(kgram)) 
+        {
+        	mMap.get(kgram).add(type);
+        } 
+        else 
+        {
+            List<String> candidates = new ArrayList<String>();
+            candidates.add(type);
+            mMap.put(kgram, candidates);
+        }
+    }
 	
 	
 	public List<String> getKGrams()

@@ -128,7 +128,7 @@ public class BooleanQueryParser
 	private StringBounds findNextSubquery(String query, int startIndex) 
 	{
 		int lengthOut;
-		
+
 		// Find the start of the next subquery by skipping spaces and + signs.
 		char test = query.charAt(startIndex);
 		while (test == ' ' || test == '+') 

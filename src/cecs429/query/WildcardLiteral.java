@@ -30,13 +30,11 @@ public class WildcardLiteral implements Query
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
 	{	
-		System.out.println("WILDCARD");
 		List<Posting> result = new ArrayList<Posting>();
 		
 		// Generate the largest k-grams
 		List<String> kgrams = generateKGrams(mTerm, index.getKGramIndex().getKValue());
 
-		
 		// Retrieve and intersect the list of vocabulary types for each k-gram
 		List<String> candidates = index.getKGramIndex().getCandidates(kgrams.get(0));
 		for(int i = 1; i < kgrams.size(); i++)
@@ -44,15 +42,9 @@ public class WildcardLiteral implements Query
 			candidates = Operator.andMerge(candidates, index.getKGramIndex().getCandidates(kgrams.get(i)));
 		}
 		
-		System.out.println("Candidates to be queried:");
-		for(String s: candidates)
-		{
-			System.out.println(s);
-		}
-		
+		// Post-filtering to make sure candidates match the wildcard pattern
 		if(candidates.size() > 0)
 		{
-			// Post-filtering to make sure candidates match the wildcard pattern
 			Iterator<String> iterator = candidates.iterator();
 		    while (iterator.hasNext()) 
 		    {
@@ -61,8 +53,18 @@ public class WildcardLiteral implements Query
 		    		iterator.remove();
 		    	}
 		    }
-			
-			// Or merge the postings for the processed term from each final wildcard candidate
+		}
+		
+		// Print list of final wildcard candidates
+		System.out.println("\nWildcard matches these types:");
+		for(String candidate: candidates)
+		{
+			System.out.println("- " + candidate);
+		}
+		
+		// Or merge the postings for the processed term from each final wildcard candidate
+		if(candidates.size() > 0)
+		{	
 			result = index.getPostings(processor.processToken(candidates.get(0)));
 			  
 	    	for(int i = 1; i < candidates.size(); i++)

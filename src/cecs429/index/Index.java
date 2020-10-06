@@ -28,6 +28,12 @@ public interface Index {
 	/**
 	 * Retrieve the K-gram index.
 	 */
+	void buildKGramIndex();
+	
+	
+	/**
+	 * Retrieve the K-gram index.
+	 */
 	KGramIndex getKGramIndex();
 
 }

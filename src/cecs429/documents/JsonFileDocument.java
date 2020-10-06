@@ -2,6 +2,7 @@ package cecs429.documents;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -45,14 +46,7 @@ public class JsonFileDocument implements FileDocument
 	@Override
 	public Reader getContent() 
 	{
-		try 
-		{
-			return Files.newBufferedReader(mFilePath);
-		} 
-		catch (IOException e) 
-		{
-			throw new RuntimeException(e);
-		}
+		return new StringReader(getArticle().getBody());
 	}
 	
 	

@@ -29,7 +29,6 @@ public class TermLiteral implements Query
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
 	{
-		System.out.println("TERM");
 		return index.getPostings(processor.processToken(mTerm));
 	}
 	
