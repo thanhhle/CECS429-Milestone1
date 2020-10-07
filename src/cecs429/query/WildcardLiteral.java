@@ -8,6 +8,7 @@ import java.util.TreeSet;
 
 import cecs429.index.Index;
 import cecs429.index.Posting;
+import cecs429.text.Normalizer;
 import cecs429.text.TokenProcessor;
 
 public class WildcardLiteral implements Query
@@ -65,11 +66,13 @@ public class WildcardLiteral implements Query
 		// Or merge the postings for the processed term from each final wildcard candidate
 		if(candidates.size() > 0)
 		{	
-			result = index.getPostings(processor.processToken(candidates.get(0)));
+			String processedTerm = new Normalizer().stemToken(candidates.get(0));
+			result = index.getPostings(processedTerm);
 		
 	    	for(int i = 1; i < candidates.size(); i++)
-	    	{
-	    		result = Operator.orMerge(result, index.getPostings(processor.processToken(candidates.get(i))));
+	    	{	    		
+	    		processedTerm = new Normalizer().stemToken(candidates.get(i));
+	    		result = Operator.orMerge(result, index.getPostings(processedTerm));
 	    	}	
 			  
 		}
