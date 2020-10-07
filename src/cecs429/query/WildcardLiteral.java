@@ -56,7 +56,7 @@ public class WildcardLiteral implements Query
 		}
 		
 		// Print list of final wildcard candidates
-		System.out.println("\nWildcard matches these types:");
+		System.out.println("\n" + candidates.size() + " wildcard matches these types:");
 		for(String candidate: candidates)
 		{
 			System.out.println("- " + candidate);
@@ -66,11 +66,12 @@ public class WildcardLiteral implements Query
 		if(candidates.size() > 0)
 		{	
 			result = index.getPostings(processor.processToken(candidates.get(0)));
-			  
+		
 	    	for(int i = 1; i < candidates.size(); i++)
 	    	{
 	    		result = Operator.orMerge(result, index.getPostings(processor.processToken(candidates.get(i))));
 	    	}	
+			  
 		}
 		
 		return result;
@@ -86,6 +87,8 @@ public class WildcardLiteral implements Query
 	
 	private List<String> generateKGrams(String term, int kValue)
 	{
+		SortedSet<String> kgrams = new TreeSet<String>();
+		
 		// Append "$" at the beginning and end of the wildcard
 		String modifiedTerm = term;
 		if(modifiedTerm.charAt(0) != '*')
@@ -100,8 +103,6 @@ public class WildcardLiteral implements Query
 		
 		// Split the query at the '*' and generate the largest k-grams
 		String[] largestKGrams = modifiedTerm.split("\\*");
-		
-		SortedSet<String> kgrams = new TreeSet<String>();
 		
 		for(String element: largestKGrams)
 		{

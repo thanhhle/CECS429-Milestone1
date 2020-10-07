@@ -77,11 +77,6 @@ public class PhraseLiteral implements Query
 	// Positional merge routine
 	private List<Posting> positionalMerge(List<Posting> list1, List<Posting> list2, int distance)
 	{
-		if(list1 == null || list2 == null)
-		{
-			return null;
-		}
-		
 		List<Posting> result = new ArrayList<Posting>();
 		
 		int i = 0;

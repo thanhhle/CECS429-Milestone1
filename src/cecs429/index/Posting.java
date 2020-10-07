@@ -53,8 +53,7 @@ public class Posting implements Comparable<Posting>
         }
 
         Posting posting = (Posting) obj;
-        return mDocumentId == posting.getDocumentId() &&
-                mPositions.equals(posting.getPositions());
+        return mDocumentId == posting.getDocumentId();
 	}
 
 	

@@ -167,14 +167,10 @@ public class PositionalInvertedIndexer
 				}
 				
 				// Output the number of documents returned from the query
-				System.out.println("\nNumber of documents returned from the query: " + postings.size());
-				
-				// Ask the user if they would like to select a document to view
-				System.out.println("\nDo you want to view a document? Enter Y for YES or anything else for NO");
-				String input = scan.nextLine().toLowerCase();
+				System.out.println("\nEnter the number of documents returned from the query: " + postings.size());
 				
 				// If the user selects a document to view, print the entire content of the document to the screen
-				if(input.equals("y"))
+				if(files.size() > 0)
 				{	
 					viewDocumentsMatchTheQuery(files);
 				}
@@ -260,17 +256,16 @@ public class PositionalInvertedIndexer
 	 */
 	private static void viewDocumentsMatchTheQuery(List<FileDocument> files)
 	{	
-		boolean validChoice = false;
+		System.out.println("\nPlease enter the document ID of the document to be viewed or anything else to continue:");
+		String input = scan.nextLine();
 		
-		do {
-			System.out.println("\nPlease enter the document ID of the document to be viewed:");
-			int documentId = Integer.parseInt(scan.nextLine());
+		if(isNumeric(input))
+		{
+			int documentId = Integer.parseInt(input);
 			
 			if(documentId > 0 && documentId <= files.size())
 			{
-				validChoice = true;
-				
-				BufferedReader bufferedReader = new BufferedReader(files.get(documentId).getContent());
+				BufferedReader bufferedReader = new BufferedReader(files.get(documentId - 1).getContent());
 
 		        try 
 		        {
@@ -285,9 +280,17 @@ public class PositionalInvertedIndexer
 		        {				
 					throw new RuntimeException(e);
 				}
-
 			}
-			
-		} while(!validChoice);
+		}
 	}
+	
+	private static boolean isNumeric(final String str) 
+	{
+        if (str == null || str.length() == 0) 
+        {
+            return false;
+        }
+
+        return str.chars().allMatch(Character::isDigit);
+    }
 }

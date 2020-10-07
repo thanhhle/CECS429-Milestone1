@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import cecs429.query.Operator;
 import cecs429.text.BasicTokenProcessor;
 import cecs429.text.Normalizer;
 import cecs429.text.TokenProcessor;
@@ -107,16 +108,13 @@ public class PositionalInvertedIndex implements Index
 	
 	
 	@Override
-	public List<Posting> getPostings(List<String> terms) {
-		List<Posting> result = new ArrayList<Posting>();
-		for(String term: terms)
+	public List<Posting> getPostings(List<String> terms) 
+	{
+		List<Posting> result = terms.size() > 0 ? mMap.get(terms.get(0)) : new ArrayList<Posting>();
+
+		for(int i = 1; i < terms.size(); i++)
 		{
-			List<Posting> postings = mMap.get(term);
-			
-			if(postings != null)
-			{
-				result.addAll(postings);
-			}
+			result = Operator.orMerge(result, mMap.get(terms.get(i)));
 		}
 		
 		return result;

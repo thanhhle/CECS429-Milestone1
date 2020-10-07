@@ -42,7 +42,7 @@ public class Normalizer {
 	 */
 	public String removeApostropes(String token)
 	{
-		return token.replaceAll("'", "").replaceAll("\"", "");
+		return token.replaceAll("'", "").replaceAll("\"", "").replace("’", "");
 	}
 	
 	

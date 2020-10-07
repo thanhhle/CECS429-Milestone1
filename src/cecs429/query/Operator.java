@@ -15,8 +15,7 @@ public class Operator
 	 */
 	public static <T extends Comparable> List<T> orMerge(List<T> list1, List<T> list2)
 	{	
-		List<T> result = new ArrayList<T>();
-			
+		List<T> result = new ArrayList<T>();	
 		int i = 0;
         int j = 0;
         
@@ -67,7 +66,6 @@ public class Operator
 	public static <T extends Comparable> List<T> andMerge(List<T> list1, List<T> list2)
 	{
 		List<T> result = new ArrayList<T>();
-		
 		int i = 0;
         int j = 0;
         
