@@ -17,11 +17,9 @@ public class PositionalInvertedIndex implements Index
 {
 	private final HashMap<String, List<Posting>> mMap;
 	
-	private final Normalizer normalizer = new Normalizer();
-	
+	private Normalizer normalizer = new Normalizer();
 	private SortedSet<String> tokens;
 	private KGramIndex kgramIndex;
-	
 	
 	/**
 	 * Constructs an empty index consists of a HashMap<K, v>
@@ -42,13 +40,13 @@ public class PositionalInvertedIndex implements Index
 	 */
 	public void addToken(String token, TokenProcessor processor, int documentId, int position) 
 	{
-		// Add the token to a TreeSet to build k-gram index later
+		// Remove all non-alphanumeric and aspostropes from the token but not stemming it
 		String temp = normalizer.removeNonAlphanumeric(token).toLowerCase();
 		temp = normalizer.removeApostropes(temp);
+		
+		// Add the token to a TreeSet to build k-gram index
 		tokens.add(temp);
 		
-		
-		// tokens.add(token.replaceAll("\\W", "").toLowerCase());
 		
 		// Process the token and add it to the index
 		List<String> processedTerms = processor.processToken(token);
@@ -110,11 +108,14 @@ public class PositionalInvertedIndex implements Index
 	@Override
 	public List<Posting> getPostings(List<String> terms) 
 	{
-		List<Posting> result = terms.size() > 0 ? mMap.get(terms.get(0)) : new ArrayList<Posting>();
-
-		for(int i = 1; i < terms.size(); i++)
+		List<Posting> result = new ArrayList<Posting>();
+		if(terms.size() > 0)
 		{
-			result = Operator.orMerge(result, mMap.get(terms.get(i)));
+			result = mMap.get(terms.get(0)) != null ? mMap.get(terms.get(0)) : result;
+			for(int i = 1; i < terms.size(); i++)
+			{
+				result = Operator.orMerge(result, mMap.get(terms.get(i)));
+			}
 		}
 		
 		return result;

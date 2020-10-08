@@ -22,7 +22,7 @@ public class AdvancedTokenProcessor implements TokenProcessor
 		// Split the original hyphenated token into multiple tokens without a hyphen, and proceed with all split tokens 
 		String[] splitTokens = token.split("-");
 		
-		List<String> list = new ArrayList<String>();
+		List<String> result = new ArrayList<String>();
 		
 		// If the token can be splitted by the hyphens into more than one token
 		if(splitTokens.length > 1)
@@ -46,12 +46,12 @@ public class AdvancedTokenProcessor implements TokenProcessor
 					s = normalizer.stemToken(s);
 					
 					// Add to the return list
-					list.add(s);
+					result.add(s);
 				}	
 			}
 		
 			// Stem the appended string and add to the return list
-			list.add(normalizer.stemToken(sb.toString()));
+			result.add(normalizer.stemToken(sb.toString()));
 		}
 		
 		// If the token does not contain hyphen
@@ -67,10 +67,10 @@ public class AdvancedTokenProcessor implements TokenProcessor
 			s = normalizer.stemToken(s);
 			
 			// Add to the return list
-			list.add(s);
+			result.add(s);
 		}
 		
-		return list;
+		return result;
 	}
 
 }

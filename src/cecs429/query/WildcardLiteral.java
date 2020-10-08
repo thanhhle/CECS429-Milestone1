@@ -73,8 +73,7 @@ public class WildcardLiteral implements Query
 	    	{	    		
 	    		processedTerm = new Normalizer().stemToken(candidates.get(i));
 	    		result = Operator.orMerge(result, index.getPostings(processedTerm));
-	    	}	
-			  
+	    	}			  
 		}
 		
 		return result;

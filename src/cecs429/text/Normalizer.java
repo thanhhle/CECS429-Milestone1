@@ -19,17 +19,18 @@ public class Normalizer {
 		int i = 0;
 		int j = token.length() - 1;
 		
-		while(!isAlphaNumeric(String.valueOf(token.charAt(i))) && i <= j) {
+		while(!isAlphaNumeric(String.valueOf(token.charAt(i))) && i <= j) 
+		{
 			i++;
 		}
 		
-		while(!isAlphaNumeric(String.valueOf(token.charAt(j))) && j > i) {
+		while(!isAlphaNumeric(String.valueOf(token.charAt(j))) && j > i) 
+		{
 			j--;
 		}
 		
 		return token.substring(i, j + 1);
 		*/
-		
 		
 		return token.replaceAll("^\\W*", "").replaceAll("\\W*$", "");
 	}
@@ -42,7 +43,12 @@ public class Normalizer {
 	 */
 	public String removeApostropes(String token)
 	{
-		return token.replaceAll("'", "").replaceAll("\"", "").replace("’", "");
+		return token.replaceAll("'", "")
+				.replaceAll("\"", "")
+				.replaceAll("‘", "")
+				.replaceAll("’", "")
+				.replaceAll("“", "")
+				.replaceAll("”", "");
 	}
 	
 	

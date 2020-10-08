@@ -196,7 +196,7 @@ public class BooleanQueryParser
 				lengthOut = nextSpace - startIndex;
 			}
 			
-			// This is a term literal containing a single term.
+			// This is a phrase literal containing multiple terms.
 			return new Literal(
 			 new StringBounds(startIndex, lengthOut),
 			 new PhraseLiteral(subquery.substring(startIndex + 1, startIndex + lengthOut - 1)));
@@ -217,7 +217,7 @@ public class BooleanQueryParser
 				lengthOut = nextSpace - startIndex;
 			}
 						
-			// This is a term literal containing a single term.
+			// This is a wildcard literal containing a single term.
 			return new Literal(
 			 new StringBounds(startIndex, lengthOut),
 			 new WildcardLiteral(subquery.substring(startIndex, startIndex + lengthOut)));

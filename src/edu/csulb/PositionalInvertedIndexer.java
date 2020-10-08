@@ -55,7 +55,7 @@ public class PositionalInvertedIndexer
 		}
 	        
 	    // Print the selected directory path 
-		System.out.println("Directory path: " + directoryPath + "\n");
+		System.out.println("Directory path: " + directoryPath);
 		
 		// Construct a corpus from the selected directory
 		DocumentCorpus corpus = DirectoryCorpus.loadDirectory(Paths.get(directoryPath).toAbsolutePath());
@@ -80,7 +80,7 @@ public class PositionalInvertedIndexer
 		long endTime = System.currentTimeMillis();
 		
 		// Print indexing time
-		System.out.println("\nTime to index = " + (endTime - startTime) + " milliseconds");
+		System.out.println("\nTime to index = " + (endTime - startTime)/1000 + " seconds");
 		
 		
 		// Handle some "special" queries that do not represent information needs.
@@ -142,6 +142,18 @@ public class PositionalInvertedIndexer
 			{
 				processor = getTokenProcessor();
 			}
+			
+			// If the input term starts with :process
+			// Process the term and print out the processed terms
+			else if(term.startsWith(":process"))
+			{
+				term = term.substring(9, term.length());
+				
+				for(String processedTerm: processor.processToken(term))
+				{
+					System.out.println(processedTerm);
+				}
+			}
 
 			else
 			{
@@ -186,7 +198,7 @@ public class PositionalInvertedIndexer
 	 */
 	private static TokenProcessor getTokenProcessor()
 	{
-		System.out.println("1 - Basic Token Processor");
+		System.out.println("\n1 - Basic Token Processor");
 		System.out.println("2 - Advanced Token Processor");
 		
 		int processorId = 0;
@@ -283,6 +295,7 @@ public class PositionalInvertedIndexer
 			}
 		}
 	}
+	
 	
 	private static boolean isNumeric(final String str) 
 	{
