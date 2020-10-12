@@ -3,13 +3,11 @@ package cecs429.index;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import cecs429.query.Operator;
-import cecs429.text.BasicTokenProcessor;
 import cecs429.text.Normalizer;
 import cecs429.text.TokenProcessor;
 
@@ -17,7 +15,6 @@ public class PositionalInvertedIndex implements Index
 {
 	private final HashMap<String, List<Posting>> mMap;
 	
-	private Normalizer normalizer = new Normalizer();
 	private SortedSet<String> tokens;
 	private KGramIndex kgramIndex;
 	
@@ -41,8 +38,8 @@ public class PositionalInvertedIndex implements Index
 	public void addToken(String token, TokenProcessor processor, int documentId, int position) 
 	{
 		// Remove all non-alphanumeric and aspostropes from the token but not stemming it
-		String temp = normalizer.removeNonAlphanumeric(token).toLowerCase();
-		temp = normalizer.removeApostropes(temp);
+		String temp = Normalizer.removeNonAlphanumeric(token).toLowerCase();
+		temp = Normalizer.removeApostropes(temp);
 		
 		// Add the token to a TreeSet to build k-gram index
 		tokens.add(temp);
@@ -123,12 +120,14 @@ public class PositionalInvertedIndex implements Index
 	
 	
 	@Override
-	public List<String> getVocabulary() {
+	public List<String> getVocabulary() 
+	{
 		List<String> vocabulary = new ArrayList<String>(mMap.keySet());
 		Collections.sort(vocabulary);
 		return vocabulary;
 	}
 
+	
 	@Override
 	public KGramIndex getKGramIndex() 
 	{	

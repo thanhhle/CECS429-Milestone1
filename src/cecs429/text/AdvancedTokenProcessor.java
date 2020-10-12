@@ -9,9 +9,7 @@ import java.util.List;
  */
 public class AdvancedTokenProcessor implements TokenProcessor 
 {
-	private Normalizer normalizer = new Normalizer();
-	
-	
+
 	@Override
 	public List<String> processToken(String token) 
 	{
@@ -34,16 +32,16 @@ public class AdvancedTokenProcessor implements TokenProcessor
 				if(!s.equals(""))
 				{
 					// Remove all non-alphanumeric characters from the beginning and end
-					s = normalizer.removeNonAlphanumeric(s);
+					s = Normalizer.removeNonAlphanumeric(s);
 					
 					// Remove all apostropes or quotation marks
-					s = normalizer.removeApostropes(s);
+					s = Normalizer.removeApostropes(s);
 					
 					// Append it to a string
 					sb.append(s);
 					
 					// Stem using an implementation of the Porter2 stemmer
-					s = normalizer.stemToken(s);
+					s = Normalizer.stemToken(s);
 					
 					// Add to the return list
 					result.add(s);
@@ -51,20 +49,20 @@ public class AdvancedTokenProcessor implements TokenProcessor
 			}
 		
 			// Stem the appended string and add to the return list
-			result.add(normalizer.stemToken(sb.toString()));
+			result.add(Normalizer.stemToken(sb.toString()));
 		}
 		
 		// If the token does not contain hyphen
 		else
 		{
 			// Remove all non-alphanumeric characters from the beginning and end
-			String s = normalizer.removeNonAlphanumeric(token);
+			String s = Normalizer.removeNonAlphanumeric(token);
 			
 			// Remove all apostropes or quotation marks
-			s = normalizer.removeApostropes(s);
+			s = Normalizer.removeApostropes(s);
 			
 			// Stem using an implementation of the Porter2 stemmer
-			s = normalizer.stemToken(s);
+			s = Normalizer.stemToken(s);
 			
 			// Add to the return list
 			result.add(s);

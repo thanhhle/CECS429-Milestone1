@@ -1,8 +1,5 @@
 package cecs429.text;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.tartarus.snowball.SnowballStemmer;
 import org.tartarus.snowball.ext.englishStemmer;
 
@@ -13,7 +10,7 @@ public class Normalizer {
 	 * @param token the string
 	 * @return the string with the non-alphanumeric characters removed from the begin and end
 	 */
-	public String removeNonAlphanumeric(String token)
+	public static String removeNonAlphanumeric(String token)
 	{
 		/*
 		int i = 0;
@@ -41,7 +38,7 @@ public class Normalizer {
 	 * @param token the string
 	 * @return the string with appstropes or quotation marks removed
 	 */
-	public String removeApostropes(String token)
+	public static String removeApostropes(String token)
 	{
 		return token.replaceAll("'", "")
 				.replaceAll("\"", "")
@@ -57,7 +54,7 @@ public class Normalizer {
 	 * @param token the string
 	 * @return
 	 */
-	public String stemToken(String token)
+	public static String stemToken(String token)
 	{
 		 SnowballStemmer stemmer = new englishStemmer();
 		 stemmer.setCurrent(token);

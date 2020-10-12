@@ -35,7 +35,6 @@ public class PositionalInvertedIndexer
 	
 	public static void main(String[] args)
 	{
-		// directoryPath = "/Users/thanhle/Downloads/MobyDick10Chapters";
 		if(directoryPath == null)
 		{
 			// Allow user to select a directory that they would like to index
@@ -111,9 +110,8 @@ public class PositionalInvertedIndexer
 			// Take the token string and stem it, then print the stemmed term
 			else if(term.startsWith(":stem"))
 			{
-				Normalizer normalizer = new Normalizer();
 				term = term.substring(6, term.length());
-				System.out.println(term + " -> " + normalizer.stemToken(term));
+				System.out.println(term + " -> " + Normalizer.stemToken(term));
 			}
 			
 			// If the input term starts with :index

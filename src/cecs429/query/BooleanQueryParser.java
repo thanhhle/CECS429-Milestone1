@@ -72,14 +72,7 @@ public class BooleanQueryParser
 				Literal lit = findNextLiteral(subquery, subStart);
 
 				// Add the literal component to the conjunctive list.
-				if(lit.literalComponent.toString().startsWith("-"))
-				{
-					subqueryLiterals.add(new NotQuery(lit.literalComponent));
-				}
-				else
-				{
-					subqueryLiterals.add(lit.literalComponent);
-				}
+				subqueryLiterals.add(lit.literalComponent);
 						
 				// Set the next index to start searching for a literal.
 				subStart = lit.bounds.start + lit.bounds.length;
@@ -170,8 +163,8 @@ public class BooleanQueryParser
 	 */
 	private Literal findNextLiteral(String subquery, int startIndex) 
 	{
-		int subLength = subquery.length();
-		int lengthOut;
+		boolean isNegative = false;
+		Literal nextLiteral;
 		
 		// Skip past white space.
 		while (subquery.charAt(startIndex) == ' ') 
@@ -179,69 +172,112 @@ public class BooleanQueryParser
 			++startIndex;
 		}
 		
-		
+		// Detect if the subquery is NotQuery object
+		if(subquery.charAt(startIndex) == '-')
+		{			
+			isNegative = true;
+			startIndex++;
+		}
+
 		// Create a PhraseLiteral object if the first non-space character is a double-quote (")
 		if(subquery.charAt(startIndex) == '"')
-		{			
-			// Locate the next space to find the end of this literal.
-			int nextSpace = subquery.indexOf('"', startIndex + 1) + 1;
-			
-			if (nextSpace < 0) 
-			{
-				// No more literals in this subquery.
-				lengthOut = subLength - startIndex;
-			}
-			else 
-			{
-				lengthOut = nextSpace - startIndex;
-			}
-			
-			// This is a phrase literal containing multiple terms.
-			return new Literal(
-			 new StringBounds(startIndex, lengthOut),
-			 new PhraseLiteral(subquery.substring(startIndex + 1, startIndex + lengthOut - 1)));
+		{	
+			nextLiteral = findNextPhraseLiteral(subquery, startIndex);
 		}
 		
 		// Create a WildcardLiteral object if the token contains one or more * characters
 		else if(subquery.substring(startIndex).indexOf('*') >= 0)
 		{
-			// Locate the next space to find the end of this literal.
-			int nextSpace = subquery.indexOf(' ', startIndex);
-			if (nextSpace < 0) 
-			{
-				// No more literals in this subquery.
-				lengthOut = subLength - startIndex;
-			}
-			else 
-			{
-				lengthOut = nextSpace - startIndex;
-			}
-						
-			// This is a wildcard literal containing a single term.
-			return new Literal(
-			 new StringBounds(startIndex, lengthOut),
-			 new WildcardLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
+			nextLiteral = findNextWildcardLiteral(subquery, startIndex);
 		}
 		
 		// Create a TermLiteral in any other case
 		else
 		{
-			// Locate the next space to find the end of this literal.
-			int nextSpace = subquery.indexOf(' ', startIndex);
-			if (nextSpace < 0) 
-			{
-				// No more literals in this subquery.
-				lengthOut = subLength - startIndex;
-			}
-			else 
-			{
-				lengthOut = nextSpace - startIndex;
-			}
-			
-			// This is a term literal containing a single term.
-			return new Literal(
-			 new StringBounds(startIndex, lengthOut),
-			 new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
+			nextLiteral = findNextTermLiteral(subquery, startIndex);
 		}
+		
+		// Create a NotQuery object if the first non-space character is a (-)
+		if(isNegative)
+		{
+			nextLiteral = new Literal(
+					new StringBounds(nextLiteral.bounds.start - 1, nextLiteral.bounds.length + 1),
+					new NotQuery(nextLiteral.literalComponent));
+		}
+		
+		return nextLiteral;
+	}
+	
+	
+	private Literal findNextPhraseLiteral(String subquery, int startIndex)
+	{
+		int subLength = subquery.length();
+		int lengthOut;
+		
+		// Locate the next space to find the end of this literal.
+		int nextSpace = subquery.indexOf('"', startIndex + 1);
+
+		if (nextSpace < 0) 
+		{
+			// No more literals in this subquery.
+			lengthOut = subLength - startIndex;
+		}
+		else 
+		{
+			lengthOut = nextSpace - startIndex;
+		}
+
+		// This is a phrase literal containing multiple terms.
+		return new Literal(
+				new StringBounds(startIndex, lengthOut + 1),
+				new PhraseLiteral(subquery.substring(startIndex, startIndex + lengthOut + 1)));
+	}
+	
+	
+	private Literal findNextWildcardLiteral(String subquery, int startIndex)
+	{
+		int subLength = subquery.length();
+		int lengthOut;
+		
+		// Locate the next space to find the end of this literal.
+		int nextSpace = subquery.indexOf(' ', startIndex);
+		if (nextSpace < 0) 
+		{
+			// No more literals in this subquery.
+			lengthOut = subLength - startIndex;
+		}
+		else 
+		{
+			lengthOut = nextSpace - startIndex;
+		}
+
+		// This is a wildcard literal containing a single term.
+		return new Literal(
+				new StringBounds(startIndex, lengthOut),
+				new WildcardLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
+	}
+	
+	
+	private Literal findNextTermLiteral(String subquery, int startIndex)
+	{
+		int subLength = subquery.length();
+		int lengthOut;
+		
+		// Locate the next space to find the end of this literal.
+		int nextSpace = subquery.indexOf(' ', startIndex);
+		if (nextSpace < 0) 
+		{
+			// No more literals in this subquery.
+			lengthOut = subLength - startIndex;
+		}
+		else 
+		{
+			lengthOut = nextSpace - startIndex;
+		}
+
+		// This is a term literal containing a single term.
+		return new Literal(
+				new StringBounds(startIndex, lengthOut),
+				new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
 	}
 }

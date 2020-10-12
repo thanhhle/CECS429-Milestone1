@@ -32,6 +32,7 @@ public class PhraseLiteral implements Query
 	 */
 	public PhraseLiteral(String terms) 
 	{
+		terms = terms.replaceAll("\"", "");
 		for(String s: Arrays.asList(terms.split(" ")))
 		{
 			if(s.contains("*"))

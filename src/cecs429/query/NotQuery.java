@@ -16,7 +16,7 @@ public class NotQuery implements Query
 	
 	public NotQuery(Query query) 
 	{
-		mQuery = new TermLiteral(query.toString().substring(1));
+		mQuery = query;
 	}
 	
 	
@@ -34,8 +34,7 @@ public class NotQuery implements Query
 	}
 	
 	
-	@Override
-	public boolean isNegative() 
+	public boolean isNegative()
 	{
 		return true;
 	}
