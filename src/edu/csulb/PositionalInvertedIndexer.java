@@ -4,6 +4,7 @@ import cecs429.documents.DirectoryCorpus;
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 import cecs429.documents.FileDocument;
+import cecs429.index.DiskPositionalIndex;
 import cecs429.index.Index;
 import cecs429.index.PositionalInvertedIndex;
 import cecs429.index.Posting;
@@ -81,6 +82,11 @@ public class PositionalInvertedIndexer
 		// Print indexing time
 		System.out.println("\nTime to index = " + (endTime - startTime)/1000 + " seconds");
 		
+		// Create an on-disk representation of the inverted index's postings
+		// DiskIndexWriter indexWriter = new DiskIndexWriter();
+		// indexWriter.writeIndex(index, directoryPath);
+
+		// Index index = new DiskPositionalIndex(directoryPath);
 		
 		// Handle some "special" queries that do not represent information needs.
 		// If the user query starts with any of these strings, perform specified operation instead of doing a postings retrieval
@@ -168,6 +174,7 @@ public class PositionalInvertedIndexer
 				// Output the names of the documents returned from the query, one per line
 				System.out.println("\nDocuments contain the query:");
 				int count = 1;
+				corpus.getDocuments();
 				for (Posting p: postings)
 				{
 					FileDocument file = (FileDocument)corpus.getDocument(p.getDocumentId());
@@ -244,8 +251,10 @@ public class PositionalInvertedIndexer
 				int position = 0;
 				for(String token: tokenStream.getTokens())
 				{
-					index.addToken(token, processor, doc.getId(), position);
+					index.addTerms(processor.processToken(token), doc.getId(), position);
 					position++;
+					
+					index.addToken(token);
 				}
 				
 				tokenStream.close();
