@@ -31,13 +31,11 @@ public class AndQuery implements Query
 		if(mChildren.get(0).isNegative())
 		{
 			// If the first literal is negative
-			System.out.println("NOT");
 			result = Operator.notMerge(mChildren.get(1).getPostings(index, processor), result);
 		}
 		else if(mChildren.get(1).isNegative())
 		{
 			// If the second literal is negative
-			System.out.println("NOT");
 			result = Operator.notMerge(result, mChildren.get(1).getPostings(index, processor));
 		}
 		else
