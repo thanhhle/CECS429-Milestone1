@@ -12,23 +12,6 @@ public class Normalizer {
 	 */
 	public static String removeNonAlphanumeric(String token)
 	{
-		/*
-		int i = 0;
-		int j = token.length() - 1;
-		
-		while(!isAlphaNumeric(String.valueOf(token.charAt(i))) && i <= j) 
-		{
-			i++;
-		}
-		
-		while(!isAlphaNumeric(String.valueOf(token.charAt(j))) && j > i) 
-		{
-			j--;
-		}
-		
-		return token.substring(i, j + 1);
-		*/
-		
 		return token.replaceAll("^\\W*", "").replaceAll("\\W*$", "");
 	}
 	

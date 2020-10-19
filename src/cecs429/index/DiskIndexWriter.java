@@ -13,8 +13,6 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 
-import cecs429.documents.Document;
-
 
 public class DiskIndexWriter
 {
@@ -103,19 +101,19 @@ public class DiskIndexWriter
 		File docWeightsFile = new File(directoryPath, "docWeights.bin");
 		
 		// Calculate document weight
-		long weight = 0;
+		double weight = 0;
 		for(String term: termFreq.keySet())
 		{
 			// wdt = 1 + ln(tftd)
-			weight += (long) Math.pow(1 + Math.log10(termFreq.get(term)), 2);
+			weight += Math.pow(1 + Math.log10(termFreq.get(term)), 2);
 		}
-		weight = (long) Math.sqrt(weight);
+		weight = Math.sqrt(weight);
 		
-		// 
+		// Write the doc weight to the file
 		try
 		{
 			DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(docWeightsFile, true)));
-			outputStream.writeLong(weight);
+			outputStream.writeDouble(weight);
 			outputStream.close();
 		}
 

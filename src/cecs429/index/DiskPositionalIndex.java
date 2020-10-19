@@ -20,6 +20,7 @@ public class DiskPositionalIndex implements Index
 {
 	private BTreeMap<String, Long> mMap;
 	private RandomAccessFile mPostingsFile;
+	private RandomAccessFile mDocWeightsFile;
 
 
 	public DiskPositionalIndex(String directoryPath)
@@ -27,6 +28,7 @@ public class DiskPositionalIndex implements Index
 		try
 		{
 			mPostingsFile = new RandomAccessFile(new File(directoryPath + File.separator + "index", "postings.bin"), "r");
+			mDocWeightsFile = new RandomAccessFile(new File(directoryPath + File.separator + "index", "docWeights.bin"), "r");
 		}
 		catch (FileNotFoundException e)
 		{
@@ -115,6 +117,22 @@ public class DiskPositionalIndex implements Index
 		return result;
 	}
 
+	
+	public Double getDocWeights(int docId)
+	{
+		try
+		{
+			byte[] buffer = new byte[8];
+			mDocWeightsFile.seek(docId * 32);
+			mDocWeightsFile.read(buffer, 0, buffer.length);
+            return ByteBuffer.wrap(buffer).getDouble();
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+	
 
 	@Override
 	public List<String> getVocabulary()
