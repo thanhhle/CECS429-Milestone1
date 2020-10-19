@@ -18,7 +18,6 @@ public class PositionalInvertedIndex implements Index
 	private SortedSet<String> tokens;
 	private KGramIndex kgramIndex;
 
-
 	/**
 	 * Constructs an empty index consists of a HashMap<K, v> K is the vocabulary
 	 * appears in the corpus V is list of document ID where the K appears
@@ -35,42 +34,39 @@ public class PositionalInvertedIndex implements Index
 	 * Process the token into term Associates the given documentId with the given
 	 * term in the index.
 	 */
-	public void addTerms(List<String> processedTerms, int documentId, int position)
+	public void addTerm(String term, int documentId, int position)
 	{
-		for (String term : processedTerms)
+		if (mMap.containsKey(term))
 		{
-			if (mMap.containsKey(term))
+			// If the term is already recorded in the index
+			int lastIndex = mMap.get(term).size() - 1;
+
+			if (mMap.get(term).get(lastIndex).getDocumentId() != documentId)
 			{
-				// If the term is already recorded in the index
-				int lastIndex = mMap.get(term).size() - 1;
-
-				if (mMap.get(term).get(lastIndex).getDocumentId() != documentId)
-				{
-					// If posting with the given documentId is not created
-					// Construct a new Posting object with given documentId and position
-					// And add it the entry associated with given term
-					mMap.get(term).add(new Posting(documentId, position));
-				}
-				else
-				{
-					// If posting with the given documentId is existed
-					// Add the new position to the posting
-					mMap.get(term).get(lastIndex).getPositions().add(position);
-				}
+				// If posting with the given documentId is not created
+				// Construct a new Posting object with given documentId and position
+				// And add it the entry associated with given term
+				mMap.get(term).add(new Posting(documentId, position));
 			}
-
 			else
 			{
-				// If the term is not added to the index
-				// Construct a list of posting
-				List<Posting> postings = new ArrayList<Posting>();
-
-				// Add the posting with given documentId and position to the list
-				postings.add(new Posting(documentId, position));
-
-				// Add the new constructed list to the associated term key
-				mMap.put(term, postings);
+				// If posting with the given documentId is existed
+				// Add the new position to the posting
+				mMap.get(term).get(lastIndex).getPositions().add(position);
 			}
+		}
+
+		else
+		{
+			// If the term is not added to the index
+			// Construct a list of posting
+			List<Posting> postings = new ArrayList<Posting>();
+
+			// Add the posting with given documentId and position to the list
+			postings.add(new Posting(documentId, position));
+
+			// Add the new constructed list to the associated term key
+			mMap.put(term, postings);
 		}
 	}
 

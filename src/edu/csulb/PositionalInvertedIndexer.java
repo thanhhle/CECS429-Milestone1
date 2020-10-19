@@ -4,6 +4,7 @@ import cecs429.documents.DirectoryCorpus;
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 import cecs429.documents.FileDocument;
+import cecs429.index.DiskIndexWriter;
 import cecs429.index.DiskPositionalIndex;
 import cecs429.index.Index;
 import cecs429.index.PositionalInvertedIndex;
@@ -18,14 +19,18 @@ import cecs429.text.TokenProcessor;
 import cecs429.text.TokenStream;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+
+import org.apache.commons.io.FileUtils;
 
 
 public class PositionalInvertedIndexer 
@@ -82,11 +87,7 @@ public class PositionalInvertedIndexer
 		// Print indexing time
 		System.out.println("\nTime to index = " + (endTime - startTime)/1000 + " seconds");
 		
-		// Create an on-disk representation of the inverted index's postings
-		// DiskIndexWriter indexWriter = new DiskIndexWriter();
-		// indexWriter.writeIndex(index, directoryPath);
-
-		// Index index = new DiskPositionalIndex(directoryPath);
+		index = new DiskPositionalIndex(directoryPath);
 		
 		// Handle some "special" queries that do not represent information needs.
 		// If the user query starts with any of these strings, perform specified operation instead of doing a postings retrieval
@@ -174,7 +175,6 @@ public class PositionalInvertedIndexer
 				// Output the names of the documents returned from the query, one per line
 				System.out.println("\nDocuments contain the query:");
 				int count = 1;
-				corpus.getDocuments();
 				for (Posting p: postings)
 				{
 					FileDocument file = (FileDocument)corpus.getDocument(p.getDocumentId());
@@ -238,6 +238,22 @@ public class PositionalInvertedIndexer
 		// Constuct an inverted index
 		PositionalInvertedIndex index = new PositionalInvertedIndex();
 		
+		// Create an on-disk representation of the inverted index
+		DiskIndexWriter indexWriter = new DiskIndexWriter();
+		
+		// Create the folder named "index" inside the corpus path
+		File indexDirectory = new File(directoryPath + File.separator + "index");
+		try
+		{
+			FileUtils.deleteDirectory(indexDirectory);
+			indexDirectory.mkdir();
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e); 
+		}
+		
+	
 		// Get all the documents in the corpus by calling GetDocuments().
 		Iterable<Document> documents = corpus.getDocuments();
 				
@@ -248,23 +264,40 @@ public class PositionalInvertedIndexer
 			{
 				TokenStream tokenStream = new EnglishTokenStream(doc.getContent());
 				
+				HashMap<String, Integer> termFreq = new HashMap<String, Integer>();
+				
 				int position = 0;
 				for(String token: tokenStream.getTokens())
 				{
-					index.addTerms(processor.processToken(token), doc.getId(), position);
+					List<String> processedTerms = processor.processToken(token);
+					
+					for(String term: processedTerms)
+					{
+						index.addTerm(term, doc.getId(), position);
+						
+						int freq = termFreq.get(term) != null ? termFreq.get(term) + 1 : 1;
+						termFreq.put(term, freq);
+					}
+					
 					position++;
 					
 					index.addToken(token);
 				}
-				
+							
 				tokenStream.close();
 				
+				// Write the document weights of each document to disk
+				indexWriter.writeDocWeights(termFreq, indexDirectory.getAbsolutePath());		
 			} 
+			
 			catch (IOException e) 
 			{
 				throw new RuntimeException(e);
 			}
 		}
+		
+		// Write the postings to disk
+		indexWriter.writeIndex(index, indexDirectory.getAbsolutePath());
 			
 		return index;
 	}

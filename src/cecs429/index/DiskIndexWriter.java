@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import org.mapdb.BTreeMap;
@@ -12,28 +13,18 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 
+import cecs429.documents.Document;
+
 
 public class DiskIndexWriter
 {
-	public BTreeMap<String, Long> writeIndex(Index index, String directoryPath)
+	public void writeIndex(Index index, String directoryPath)
 	{		
-		// Get the folder named "index" inside the corpus path
-		File dir = new File(directoryPath + File.separator + "index");
-
-		// Create the folder if it does not exist
-		dir.mkdir();
-
 		// Get the file named "postings.bin" which is to store the index's postings
-		File postingsFile = new File(dir.getAbsolutePath().toString(), "postings.bin");
+		File postingsFile = new File(directoryPath, "postings.bin");
 
-		// Delete the file if it exists
-		postingsFile.delete();
-		
-		// Get the file named "postings.bin" which is to store the index's postings
-		File vocabTableFile = new File(dir.getAbsolutePath().toString(), "vocab_table.db");
-
-		// Delete the file if it exists
-		vocabTableFile.delete();
+		// Get the file named "vocab_table.bin" which is to store mapping from vocabulary term to byte position in postings.bin
+		File vocabTableFile = new File(directoryPath, "vocab_table.db");
 
 		List<String> vocabulary = index.getVocabulary();
 
@@ -103,7 +94,34 @@ public class DiskIndexWriter
 		}
 		
 		db.close();
+	}
+	
+	
+	public void writeDocWeights(HashMap<String, Integer> termFreq, String directoryPath)
+	{		
+		// Get the file named "docWeights.bin" which is to store the index's postings
+		File docWeightsFile = new File(directoryPath, "docWeights.bin");
+		
+		// Calculate document weight
+		long weight = 0;
+		for(String term: termFreq.keySet())
+		{
+			// wdt = 1 + ln(tftd)
+			weight += (long) Math.pow(1 + Math.log10(termFreq.get(term)), 2);
+		}
+		weight = (long) Math.sqrt(weight);
+		
+		// 
+		try
+		{
+			DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(docWeightsFile, true)));
+			outputStream.writeLong(weight);
+			outputStream.close();
+		}
 
-		return mMap;
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 }
