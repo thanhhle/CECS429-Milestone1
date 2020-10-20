@@ -97,19 +97,7 @@ public class PositionalInvertedIndex implements Index
 		return mMap.get(term) != null ? mMap.get(term) : new ArrayList<Posting>();
 	}
 
-
-	public List<Posting> getPostings(List<String> terms)
-	{
-		List<Posting> result = new ArrayList<Posting>();
-		for (String term : terms)
-		{
-			result = Operator.orMerge(result, getPostings(term));
-		}
-
-		return result;
-	}
-
-
+	
 	@Override
 	public List<String> getVocabulary()
 	{

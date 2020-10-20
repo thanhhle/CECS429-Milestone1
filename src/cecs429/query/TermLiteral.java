@@ -4,6 +4,7 @@ import cecs429.index.Index;
 import cecs429.index.Posting;
 import cecs429.text.TokenProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,7 +30,15 @@ public class TermLiteral implements Query
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
 	{
-		return index.getPostings(processor.processToken(mTerm));
+		// return index.getPostings(processor.processToken(mTerm));
+		
+		List<Posting> result = new ArrayList<Posting>();
+		for (String term: processor.processToken(mTerm))
+		{
+			result = Operator.orMerge(result, index.getPostings(term));
+		}
+
+		return result;
 	}
 	
 	

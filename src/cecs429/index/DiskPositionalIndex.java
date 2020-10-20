@@ -13,8 +13,6 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 
-import cecs429.query.Operator;
-
 
 public class DiskPositionalIndex implements Index
 {
@@ -105,8 +103,7 @@ public class DiskPositionalIndex implements Index
 		return result;
 	}
 
-
-	@Override
+	/*
 	public List<Posting> getPostings(List<String> terms)
 	{
 		List<Posting> result = new ArrayList<Posting>();
@@ -116,6 +113,7 @@ public class DiskPositionalIndex implements Index
 		}
 		return result;
 	}
+	*/
 
 	
 	public Double getDocWeights(int docId)

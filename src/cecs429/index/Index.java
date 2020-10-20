@@ -6,17 +6,12 @@ import java.util.List;
  * An Index can retrieve postings for a term from a data structure associating terms and the documents
  * that contain them.
  */
-public interface Index {
+public interface Index 
+{
 	/**
 	 * Retrieves a list of Postings of documents that contain the given term.
 	 */
 	List<Posting> getPostings(String term);
-	
-	
-	/**
-	 * Retrieves a list of Postings of documents that contain the given term.
-	 */
-	List<Posting> getPostings(List<String> terms);
 	
 	
 	/**
@@ -35,5 +30,4 @@ public interface Index {
 	 * Retrieve the K-gram index.
 	 */
 	KGramIndex getKGramIndex();
-
 }

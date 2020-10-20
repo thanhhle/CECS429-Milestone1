@@ -185,6 +185,7 @@ public class DirectoryCorpus implements DocumentCorpus
 	{
 		DirectoryCorpus corpus = new DirectoryCorpus(absolutePath);
 		corpus.registerFileDocumentFactory(fileExtension, TextFileDocument::loadTextFileDocument);
+		corpus.getDocuments();
 		return corpus;
 	}
 	
@@ -197,6 +198,7 @@ public class DirectoryCorpus implements DocumentCorpus
 	{
 		DirectoryCorpus corpus = new DirectoryCorpus(absolutePath);
 		corpus.registerFileDocumentFactory(fileExtension, JsonFileDocument::loadJsonFileDocument);
+		corpus.getDocuments();
 		return corpus;
 	}
 	
@@ -210,6 +212,7 @@ public class DirectoryCorpus implements DocumentCorpus
 		DirectoryCorpus corpus = new DirectoryCorpus(absolutePath);
 		corpus.registerFileDocumentFactory(".json", JsonFileDocument::loadJsonFileDocument);
 		corpus.registerFileDocumentFactory(".txt", TextFileDocument::loadTextFileDocument);
+		corpus.getDocuments();
 		return corpus;
 	}
 }
