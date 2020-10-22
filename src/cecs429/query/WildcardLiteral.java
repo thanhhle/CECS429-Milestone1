@@ -67,12 +67,12 @@ public class WildcardLiteral implements Query
 		if(candidates.size() > 0)
 		{	
 			String processedTerm = Normalizer.stemToken(candidates.get(0));
-			result = index.getPostings(processedTerm);
+			result = index.getPostingsWithPositions(processedTerm);
 		
 	    	for(int i = 1; i < candidates.size(); i++)
 	    	{	    		
 	    		processedTerm = Normalizer.stemToken(candidates.get(i));
-	    		result = Operator.orMerge(result, index.getPostings(processedTerm));
+	    		result = Operator.orMerge(result, index.getPostingsWithPositions(processedTerm));
 	    	}			  
 		}
 		

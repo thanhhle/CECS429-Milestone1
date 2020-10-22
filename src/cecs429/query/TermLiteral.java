@@ -35,9 +35,14 @@ public class TermLiteral implements Query
 		List<Posting> result = new ArrayList<Posting>();
 		for (String term: processor.processToken(mTerm))
 		{
-			result = Operator.orMerge(result, index.getPostings(term));
+			result = Operator.orMerge(result, index.getPostingsWithPositions(term));
 		}
 
+		for(Posting posting: result)
+		{
+			System.out.println(posting.getDocumentId());
+		}
+		
 		return result;
 	}
 	

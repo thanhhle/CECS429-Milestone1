@@ -7,7 +7,7 @@ import java.util.List;
  * Parses boolean queries according to the base requirements of the CECS 429 project.
  * Does not handle phrase queries, NOT queries, NEAR queries, or wildcard queries... yet.
  */
-public class BooleanQueryParser 
+public class BooleanQueryParser implements QueryParser
 {
 	/**
 	 * Identifies a portion of a string with a starting index and a length.
@@ -44,7 +44,7 @@ public class BooleanQueryParser
 	/**
 	 * Given a boolean query, parses and returns a tree of Query objects representing the query.
 	 */
-	public Query parseQuery(String query) 
+	public Query parseQuery(String query, int corpusSize) 
 	{
 		int start = 0;
 		

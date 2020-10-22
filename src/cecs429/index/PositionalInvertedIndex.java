@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import cecs429.query.Operator;
 import cecs429.text.Normalizer;
 
 
@@ -41,16 +40,16 @@ public class PositionalInvertedIndex implements Index
 			// If the term is already recorded in the index
 			int lastIndex = mMap.get(term).size() - 1;
 
+			// Construct a new Posting object if posting with the given documentId is not created
 			if (mMap.get(term).get(lastIndex).getDocumentId() != documentId)
 			{
-				// If posting with the given documentId is not created
-				// Construct a new Posting object with given documentId and position
-				// And add it the entry associated with given term
-				mMap.get(term).add(new Posting(documentId, position));
+				Posting posting = new Posting(documentId, new ArrayList<Integer>());
+				posting.getPositions().add(position);
+				
+				mMap.get(term).add(posting);
 			}
 			else
 			{
-				// If posting with the given documentId is existed
 				// Add the new position to the posting
 				mMap.get(term).get(lastIndex).getPositions().add(position);
 			}
@@ -58,13 +57,16 @@ public class PositionalInvertedIndex implements Index
 
 		else
 		{
-			// If the term is not added to the index
-			// Construct a list of posting
+			// Construct a list of posting if the term is not added to the index
 			List<Posting> postings = new ArrayList<Posting>();
 
-			// Add the posting with given documentId and position to the list
-			postings.add(new Posting(documentId, position));
-
+			// Construct a posting with given documentId and position
+			Posting posting = new Posting(documentId, new ArrayList<Integer>());
+			posting.getPositions().add(position);
+			
+			// Add the posting to the list
+			postings.add(posting);
+			
 			// Add the new constructed list to the associated term key
 			mMap.put(term, postings);
 		}
@@ -92,9 +94,16 @@ public class PositionalInvertedIndex implements Index
 
 
 	@Override
-	public List<Posting> getPostings(String term)
+	public List<Posting> getPostingsWithPositions(String term)
 	{
 		return mMap.get(term) != null ? mMap.get(term) : new ArrayList<Posting>();
+	}
+	
+	
+	@Override
+	public List<Posting> getPostingsWithoutPositions(String term)
+	{
+		return getPostingsWithPositions(term);
 	}
 
 	
@@ -111,6 +120,5 @@ public class PositionalInvertedIndex implements Index
 	public KGramIndex getKGramIndex()
 	{
 		return kgramIndex;
-	}
-
+	}	
 }

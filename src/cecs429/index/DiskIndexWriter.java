@@ -13,10 +13,12 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 
+import cecs429.text.TokenProcessor;
+
 
 public class DiskIndexWriter
 {
-	public void writeIndex(Index index, String directoryPath)
+	public void writeIndex(Index index, String directoryPath, TokenProcessor processor)
 	{		
 		// Get the file named "postings.bin" which is to store the index's postings
 		File postingsFile = new File(directoryPath, "postings.bin");
@@ -37,53 +39,57 @@ public class DiskIndexWriter
 			long byteOffset = 0;
 			for (String vocab : vocabulary)
 			{
-				DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(postingsFile, true)));
-
-				// Add the byte position where the posting begins
-				mMap.put(vocab, byteOffset);
-
-				// Get the list of the posting of each vocabulary term
-				List<Posting> postings = index.getPostings(vocab);
-
-				int docFreq = postings.size();
-
-				// Write the dft to the file
-				outputStream.writeInt(docFreq);
-
-				int lastDocId = 0;
-				for (Posting posting : postings)
+				for (String term : processor.processToken(vocab))
 				{
-					int docId = posting.getDocumentId();
+					DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(postingsFile, true)));
 
-					// Write the docId using gap to the file
-					outputStream.writeInt(docId - lastDocId);
+					// Add the byte position where the posting begins
+					mMap.put(term, byteOffset);
 
-					// Update the last doc Id
-					lastDocId = docId;
+					// Get the list of the posting of each vocabulary term
+					List<Posting> postings = index.getPostingsWithPositions(term);
 
-					List<Integer> positions = posting.getPositions();
+					int docFreq = postings.size();
 
-					int posFreq = positions.size();
+					// Write the dft to the file
+					outputStream.writeInt(docFreq);
 
-					// Write the tftd to the file
-					outputStream.writeInt(posFreq);
-
-					int lastPos = 0;
-					for (Integer pos : positions)
+					int lastDocId = 0;
+					for (Posting posting : postings)
 					{
-						// Write the position using gap to the file
-						outputStream.writeInt(pos - lastPos);
+						int docId = posting.getDocumentId();
 
-						// Update the last position
-						lastPos = pos;
+						// Write the docId using gap to the file
+						outputStream.writeInt(docId - lastDocId);
+
+						// Update the last doc Id
+						lastDocId = docId;
+
+						List<Integer> positions = posting.getPositions();
+
+						int posFreq = positions.size();
+
+						// Write the tftd to the file
+						outputStream.writeInt(posFreq);
+
+						int lastPos = 0;
+						for (Integer pos : positions)
+						{
+							// Write the position using gap to the file
+							outputStream.writeInt(pos - lastPos);
+
+							// Update the last position
+							lastPos = pos;
+						}
 					}
+
+					// Update the byte position of where the next posting begins
+					byteOffset += outputStream.size();
+
+					outputStream.close();
 				}
-
-				// Update the byte position of where the next posting begins
-				byteOffset += outputStream.size();
-
-				outputStream.close();
 			}
+				
 		}
 
 		catch (IOException e)

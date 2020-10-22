@@ -64,7 +64,6 @@ public class AndQuery implements Query
 	@Override
 	public String toString() 
 	{
-		return
-		 String.join(" ", mChildren.stream().map(c -> c.toString()).collect(Collectors.toList()));
+		return String.join(" ", mChildren.stream().map(c -> c.toString()).collect(Collectors.toList()));
 	}
 }

@@ -41,7 +41,7 @@ public class DiskPositionalIndex implements Index
 
 
 	@Override
-	public List<Posting> getPostings(String term)
+	public List<Posting> getPostingsWithPositions(String term)
 	{
 		List<Posting> result = new ArrayList<Posting>();
 
@@ -103,25 +103,66 @@ public class DiskPositionalIndex implements Index
 		return result;
 	}
 
-	/*
-	public List<Posting> getPostings(List<String> terms)
+	
+	@Override
+	public List<Posting> getPostingsWithoutPositions(String term)
 	{
 		List<Posting> result = new ArrayList<Posting>();
-		for (String term : terms)
+
+		Long byteOffset = mMap.get(term);
+
+		if (byteOffset != null)
 		{
-			result = Operator.orMerge(result, getPostings(term));
+			byte[] buffer = new byte[4];
+			try
+			{
+				mPostingsFile.seek(byteOffset);
+
+				// Read the 4 bytes for the document frequency
+				mPostingsFile.read(buffer, 0, buffer.length);
+				int docFreq = ByteBuffer.wrap(buffer).getInt();
+
+				int lastDocId = 0;
+				for (int i = 0; i < docFreq; i++)
+				{
+					// Read the 4 bytes for the gap of docId
+					mPostingsFile.read(buffer, 0, buffer.length);
+					int docId = ByteBuffer.wrap(buffer).getInt() + lastDocId;
+
+					lastDocId = docId;
+
+					// Read the 4 bytes for the position frequency
+					mPostingsFile.read(buffer, 0, buffer.length);
+					int termFreq = ByteBuffer.wrap(buffer).getInt();
+					
+					result.add(new Posting(docId, termFreq));
+					
+					// Skip over the positions
+					mPostingsFile.skipBytes(4 * termFreq);
+				}
+			}
+
+			catch (FileNotFoundException e)
+			{
+				throw new RuntimeException(e);
+			}
+
+			catch (IOException e)
+			{
+				throw new RuntimeException(e);
+			}
 		}
+		
 		return result;
 	}
-	*/
-
 	
-	public Double getDocWeights(int docId)
+	
+	public Double getDocWeight(int docId)
 	{
 		try
 		{
 			byte[] buffer = new byte[8];
-			mDocWeightsFile.seek(docId * 32);
+			mDocWeightsFile.seek(docId * 8);
 			mDocWeightsFile.read(buffer, 0, buffer.length);
             return ByteBuffer.wrap(buffer).getDouble();
 		}
