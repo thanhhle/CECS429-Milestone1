@@ -35,8 +35,7 @@ public class KGramIndex
 		String modifiedType = "$" + type + "$";
 		for (int k = 1; k <= mKValue; k++)
 		{
-			// Generate k-grams with maxK as the largest value for k, and add them to the
-			// index
+			// Generate k-grams with maxK as the largest value for k, and add them to the index
 			for (int i = 0; i + k <= modifiedType.length(); i++)
 			{
 				String kgram = modifiedType.substring(i, i + k);
@@ -55,7 +54,7 @@ public class KGramIndex
 	 * @param kgram the k-gram
 	 * @param type  the vocabulary type that contains k-gram
 	 */
-	private void addKGram(String kgram, String type)
+	public void addKGram(String kgram, String type)
 	{
 		if (mMap.containsKey(kgram))
 		{

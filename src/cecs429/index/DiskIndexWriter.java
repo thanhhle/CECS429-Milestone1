@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,21 +20,20 @@ import cecs429.text.TokenProcessor;
 public class DiskIndexWriter
 {
 	public void writeIndex(Index index, String directoryPath, TokenProcessor processor)
-	{		
+	{
 		// Get the file named "postings.bin" which is to store the index's postings
 		File postingsFile = new File(directoryPath, "postings.bin");
 
 		// Get the file named "vocab_table.bin" which is to store mapping from vocabulary term to byte position in postings.bin
 		File vocabTableFile = new File(directoryPath, "vocab_table.db");
 
+		DB vocabTableDB = DBMaker.fileDB(vocabTableFile).fileMmapEnable().closeOnJvmShutdown().make();
+		BTreeMap<String, Long> vocabTable = vocabTableDB.treeMap("map")
+											.keySerializer(Serializer.STRING)
+											.valueSerializer(Serializer.LONG).create();
+
 		List<String> vocabulary = index.getVocabulary();
 
-		DB db = DBMaker.fileDB(vocabTableFile).fileMmapEnable().make();
-		BTreeMap<String, Long> mMap = db.treeMap("map")
-		        .keySerializer(Serializer.STRING)
-		        .valueSerializer(Serializer.LONG)
-		        .create();
-		
 		try
 		{
 			long byteOffset = 0;
@@ -44,7 +44,7 @@ public class DiskIndexWriter
 					DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(postingsFile, true)));
 
 					// Add the byte position where the posting begins
-					mMap.put(term, byteOffset);
+					vocabTable.put(term, byteOffset);
 
 					// Get the list of the posting of each vocabulary term
 					List<Posting> postings = index.getPostingsWithPositions(term);
@@ -89,32 +89,31 @@ public class DiskIndexWriter
 					outputStream.close();
 				}
 			}
-				
 		}
 
 		catch (IOException e)
 		{
 			throw new RuntimeException(e);
 		}
-		
-		db.close();
+
+		vocabTableDB.close();
 	}
-	
-	
+
+
 	public void writeDocWeights(HashMap<String, Integer> termFreq, String directoryPath)
-	{		
+	{
 		// Get the file named "docWeights.bin" which is to store the index's postings
 		File docWeightsFile = new File(directoryPath, "docWeights.bin");
-		
+
 		// Calculate document weight
 		double weight = 0;
-		for(String term: termFreq.keySet())
+		for (String term : termFreq.keySet())
 		{
 			// wdt = 1 + ln(tftd)
 			weight += Math.pow(1 + Math.log10(termFreq.get(term)), 2);
 		}
 		weight = Math.sqrt(weight);
-		
+
 		// Write the doc weight to the file
 		try
 		{
@@ -127,5 +126,66 @@ public class DiskIndexWriter
 		{
 			throw new RuntimeException(e);
 		}
+	}
+
+
+	public void writeKGramIndex(Index index, String directoryPath)
+	{
+		// Get the file named "candidates.bin" which is to store the kgram index's candidates
+		File candidatesFile = new File(directoryPath, "candidates.bin");
+
+		// Get the file named "vocab_table.bin" which is to store mapping from kgram term to byte position of its list of candidates
+		File kgramTableFile = new File(directoryPath, "kgram_table.db");
+
+		DB kgramTableDB = DBMaker.fileDB(kgramTableFile).fileMmapEnable().closeOnJvmShutdown().make();
+		BTreeMap<String, Long> kgramTable = kgramTableDB.treeMap("treemap")
+											.keySerializer(Serializer.STRING)
+											.valueSerializer(Serializer.LONG).create();
+			
+		KGramIndex kgramIndex = index.getKGramIndex();
+
+		try
+		{
+			long byteOffset = 0;
+			for (String kgram : kgramIndex.getKGrams())
+			{
+				DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(candidatesFile, true)));
+
+				// Add the byte position where the list of candidates begins
+				kgramTable.put(kgram, byteOffset);
+
+				// Get the list of candidates of each kgram
+				List<String> candidates = kgramIndex.getCandidates(kgram);
+
+				int candidateFreq = candidates.size();
+
+				// Write the dft to the file
+				outputStream.writeInt(candidateFreq);
+
+				for (String candidate : candidates)
+				{
+					// Get the bytes of each candidate in UTF-8
+					byte[] bytes = candidate.getBytes(StandardCharsets.UTF_8);
+
+					// Write the length of that byte array to the file
+					outputStream.writeInt(bytes.length);
+
+					// Write the bytes to the file
+					outputStream.write(bytes);
+				}
+
+				// Update the byte position of where the next candidate begins
+				byteOffset += outputStream.size();
+
+				outputStream.close();
+			}
+		}
+
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+
+		kgramTableDB.close();
 	}
 }

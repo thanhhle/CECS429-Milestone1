@@ -64,17 +64,11 @@ public class WildcardLiteral implements Query
 		}
 		
 		// Or merge the postings for the processed term from each final wildcard candidate
-		if(candidates.size() > 0)
-		{	
-			String processedTerm = Normalizer.stemToken(candidates.get(0));
-			result = index.getPostingsWithPositions(processedTerm);
-		
-	    	for(int i = 1; i < candidates.size(); i++)
-	    	{	    		
-	    		processedTerm = Normalizer.stemToken(candidates.get(i));
-	    		result = Operator.orMerge(result, index.getPostingsWithPositions(processedTerm));
-	    	}			  
-		}
+		for(int i = 0; i < candidates.size(); i++)
+    	{	    		
+    		String processedTerm = Normalizer.stemToken(candidates.get(i));
+    		result = Operator.orMerge(result, index.getPostingsWithPositions(processedTerm));
+    	}	
 		
 		return result;
 	}

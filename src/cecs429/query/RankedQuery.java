@@ -15,13 +15,13 @@ import cecs429.text.TokenProcessor;
 
 public class RankedQuery implements Query
 {
-	private List<String> mTerms;
+	private List<Query> mChildren;
 	private int mCorpusSize;
 
 
-	public RankedQuery(List<String> terms, int corpusSize)
+	public RankedQuery(List<Query> children, int corpusSize)
 	{
-		mTerms = terms;
+		mChildren = children;
 		mCorpusSize = corpusSize;
 	}
 
@@ -32,14 +32,10 @@ public class RankedQuery implements Query
 		List<Posting> result = new ArrayList<Posting>();
 		HashMap<Posting, Double> accumulator = new HashMap<Posting, Double>();
 
-		for (String token : mTerms)
+		for (Query query : mChildren)
 		{
-			// Get the posting lists of each term
-			List<Posting> postings = new ArrayList<Posting>();
-			for (String term : processor.processToken(token))
-			{
-				postings = Operator.orMerge(postings, index.getPostingsWithoutPositions(term));
-			}
+			// Get the posting lists of each term		
+			List<Posting> postings = query.getPostings(index, processor);
 
 			// Calculate query weight = ln(1 + N/dft)
 			int docFreq = postings.size();
@@ -89,8 +85,14 @@ public class RankedQuery implements Query
 
 
 	@Override
-	public String toString()
+	public String toString() 
 	{
-		return String.join(" ", mTerms.stream().map(c -> c.toString()).collect(Collectors.toList()));
+		String s = "";
+		for(Query query: mChildren)
+		{
+			s += query.toString() + " ";
+		}
+		return s;
 	}
+	
 }

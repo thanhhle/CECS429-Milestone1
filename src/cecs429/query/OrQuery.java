@@ -27,9 +27,9 @@ public class OrQuery implements Query
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
 	{
-		List<Posting> result = mChildren.get(0).getPostings(index, processor);
+		List<Posting> result = new ArrayList<Posting>();
 		
-		for(int i = 1; i < mChildren.size(); i++)
+		for(int i = 0; i < mChildren.size(); i++)
 		{
 			result = Operator.orMerge(result, mChildren.get(i).getPostings(index, processor));
 		}

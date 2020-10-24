@@ -27,9 +27,9 @@ public interface Index
 	
 	
 	/**
-	 * Retrieve the K-gram index.
+	 * Build kgram index
 	 */
-	void buildKGramIndex();
+	void buildKGramIndex(String directoryPath);
 	
 	
 	/**

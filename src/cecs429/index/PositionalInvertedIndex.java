@@ -15,7 +15,7 @@ public class PositionalInvertedIndex implements Index
 	private final HashMap<String, List<Posting>> mMap;
 
 	private SortedSet<String> tokens;
-	private KGramIndex kgramIndex;
+	private KGramIndex mKGramIndex;
 
 	/**
 	 * Constructs an empty index consists of a HashMap<K, v> K is the vocabulary
@@ -24,7 +24,7 @@ public class PositionalInvertedIndex implements Index
 	public PositionalInvertedIndex()
 	{
 		mMap = new HashMap<String, List<Posting>>();
-		kgramIndex = new KGramIndex(3);
+		mKGramIndex = new KGramIndex(3);
 		tokens = new TreeSet<String>();
 	}
 
@@ -72,7 +72,7 @@ public class PositionalInvertedIndex implements Index
 		}
 	}
 
-	
+
 	public void addToken(String token)
 	{
 		// Remove all non-alphanumeric and aspostropes from the token but not stemming it
@@ -83,12 +83,13 @@ public class PositionalInvertedIndex implements Index
 		tokens.add(temp);
 	}
 	
-
-	public void buildKGramIndex()
+	
+	@Override
+	public void buildKGramIndex(String directoryPath)
 	{
 		for (String token : tokens)
 		{
-			kgramIndex.addType(token);
+			mKGramIndex.addType(token);
 		}
 	}
 
@@ -119,6 +120,6 @@ public class PositionalInvertedIndex implements Index
 	@Override
 	public KGramIndex getKGramIndex()
 	{
-		return kgramIndex;
+		return mKGramIndex;
 	}	
 }

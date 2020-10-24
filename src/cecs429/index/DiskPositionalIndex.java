@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,11 +17,12 @@ import org.mapdb.Serializer;
 
 public class DiskPositionalIndex implements Index
 {
-	private BTreeMap<String, Long> mMap;
+	private BTreeMap<String, Long> mVocabTable;
 	private RandomAccessFile mPostingsFile;
 	private RandomAccessFile mDocWeightsFile;
-
-
+	
+	private KGramIndex mKGramIndex;
+	
 	public DiskPositionalIndex(String directoryPath)
 	{
 		try
@@ -34,9 +36,11 @@ public class DiskPositionalIndex implements Index
 		}
 
 		File vocabTableFile = new File(directoryPath + File.separator + "index", "vocab_table.db");
-
-		DB db = DBMaker.fileDB(vocabTableFile).fileMmapEnable().closeOnJvmShutdown().make();
-		mMap = db.treeMap("map").keySerializer(Serializer.STRING).valueSerializer(Serializer.LONG).createOrOpen();
+		DB vocabTableDB = DBMaker.fileDB(vocabTableFile).fileMmapEnable().closeOnJvmShutdown().make();
+		mVocabTable = vocabTableDB.treeMap("map").keySerializer(Serializer.STRING).valueSerializer(Serializer.LONG).createOrOpen();
+		
+		mKGramIndex = new KGramIndex(3);
+		this.buildKGramIndex(directoryPath);
 	}
 
 
@@ -45,7 +49,7 @@ public class DiskPositionalIndex implements Index
 	{
 		List<Posting> result = new ArrayList<Posting>();
 
-		Long byteOffset = mMap.get(term);
+		Long byteOffset = mVocabTable.get(term);
 
 		if (byteOffset != null)
 		{
@@ -109,7 +113,7 @@ public class DiskPositionalIndex implements Index
 	{
 		List<Posting> result = new ArrayList<Posting>();
 
-		Long byteOffset = mMap.get(term);
+		Long byteOffset = mVocabTable.get(term);
 
 		if (byteOffset != null)
 		{
@@ -176,21 +180,69 @@ public class DiskPositionalIndex implements Index
 	@Override
 	public List<String> getVocabulary()
 	{
-		return new ArrayList<String>(mMap.keySet());
+		return new ArrayList<String>(mVocabTable.keySet());
 	}
 
 
 	@Override
-	public void buildKGramIndex()
+	public void buildKGramIndex(String directoryPath)
 	{
-		// TODO Auto-generated method stub
+		try
+		{
+			RandomAccessFile candidatesFile = new RandomAccessFile(new File(directoryPath + File.separator + "index", "candidates.bin"), "r");
+			
+			File kgramTableFile = new File(directoryPath + File.separator + "index", "kgram_table.db");
+			DB kgramTableDB = DBMaker.fileDB(kgramTableFile).fileMmapEnable().closeOnJvmShutdown().make();
+			BTreeMap<String, Long> kgramTable = kgramTableDB.treeMap("treemap")
+												.keySerializer(Serializer.STRING)
+												.valueSerializer(Serializer.LONG).createOrOpen();
+			
+			for(String kgram: kgramTable.keySet())
+			{
+				Long byteOffset = kgramTable.get(kgram);
+				if (byteOffset != null)
+				{
+					byte[] buffer = new byte[4];
+					
+					candidatesFile.seek(byteOffset);
+					
+					// Read the 4 bytes for the candidate frequency
+					candidatesFile.read(buffer, 0, buffer.length);
+					int candidateFreq = ByteBuffer.wrap(buffer).getInt();
+
+					for (int i = 0; i < candidateFreq; i++)
+					{
+						// Read the 4 bytes for candidate size
+						candidatesFile.read(buffer, 0, buffer.length);
+						int candidateSize = ByteBuffer.wrap(buffer).getInt();
+
+						byte[] candidateBuffer = new byte[candidateSize];
+						
+						// Read the bytes for the candidate
+						candidatesFile.read(candidateBuffer, 0, candidateBuffer.length);
+						
+						String candidate = new String(candidateBuffer, StandardCharsets.UTF_8);
+						
+						mKGramIndex.addKGram(kgram, candidate);
+					}
+				}
+				
+			}
+		}
+		catch (FileNotFoundException e)
+		{
+			throw new RuntimeException(e);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 
 
 	@Override
 	public KGramIndex getKGramIndex()
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return mKGramIndex;
 	}
 }

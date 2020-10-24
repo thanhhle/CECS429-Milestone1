@@ -29,20 +29,13 @@ public class TermLiteral implements Query
 	
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
-	{
-		// return index.getPostings(processor.processToken(mTerm));
-		
+	{	
 		List<Posting> result = new ArrayList<Posting>();
 		for (String term: processor.processToken(mTerm))
 		{
 			result = Operator.orMerge(result, index.getPostingsWithPositions(term));
 		}
 
-		for(Posting posting: result)
-		{
-			System.out.println(posting.getDocumentId());
-		}
-		
 		return result;
 	}
 	

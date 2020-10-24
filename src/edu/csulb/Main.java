@@ -151,14 +151,7 @@ public class Main
 
 		// Build a positional inverted index 
 		System.out.println("\nIndexing \"" + directoryPath + "\"...");
-		Index index = indexCorpus(corpus);
-
-		System.out.println("Done");
-
-		// Build a k-gram index
-		System.out.println("\nBuilding kgram index...");
-		index.buildKGramIndex();
-		System.out.println(index.getKGramIndex().getKGrams().size() + " distinct kgrams in the index");
+		indexCorpus(corpus);
 
 		// Stop counting time to index the corpus
 		long endTime = System.currentTimeMillis();
@@ -170,7 +163,7 @@ public class Main
 
 	private static void queryOverExistingIndex()
 	{
-		DiskPositionalIndex index = new DiskPositionalIndex(directoryPath);
+		Index index = new DiskPositionalIndex(directoryPath);
 		QueryParser queryParser = getQueryParser();
 
 		// Handle some "special" queries that do not represent information needs.
@@ -210,8 +203,7 @@ public class Main
 			else if (term.startsWith(":index"))
 			{
 				directoryPath = term.substring(7, term.length());
-				main(new String[]
-				{});
+				main(new String[]{});
 			}
 
 			// If the input term starts with :vocab
@@ -245,7 +237,7 @@ public class Main
 				}
 			}
 
-			// If the input term starts with :changeMode
+			// If the input term starts with :mode
 			// Allow user to change the querying mode
 			else if (term.startsWith(":mode"))
 			{
@@ -291,7 +283,7 @@ public class Main
 	/*
 	 * Index the corpus
 	 */
-	private static Index indexCorpus(DocumentCorpus corpus)
+	private static void indexCorpus(DocumentCorpus corpus)
 	{
 		// Constuct an inverted index
 		PositionalInvertedIndex index = new PositionalInvertedIndex();
@@ -352,11 +344,19 @@ public class Main
 				throw new RuntimeException(e);
 			}
 		}
+		
+		System.out.println("Done");
+
+		// Build a k-gram index
+		System.out.println("\nBuilding kgram index...");
+		index.buildKGramIndex(directoryPath);
+		System.out.println(index.getKGramIndex().getKGrams().size() + " distinct kgrams in the index");
 
 		// Write the postings to disk
 		indexWriter.writeIndex(index, indexDirectory.getAbsolutePath(), processor);
-
-		return index;
+		
+		// Write the kgram index to disk
+		indexWriter.writeKGramIndex(index, indexDirectory.getAbsolutePath());
 	}
 
 

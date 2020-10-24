@@ -1,5 +1,6 @@
 package cecs429.query;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,6 +12,19 @@ public class RankedQueryParser implements QueryParser
 	public Query parseQuery(String query, int corpusSize) 
 	{
 		List<String> terms = Arrays.asList(query.trim().split("\\s+"));
-		return new RankedQuery(terms, corpusSize);
+		
+		List<Query> children = new ArrayList<Query>();
+		for(String term: terms)
+		{
+			if(term.contains("*"))
+			{
+				children.add(new WildcardLiteral(term));
+			}
+			else
+			{
+				children.add(new TermLiteral(term));
+			}
+		}
+		return new RankedQuery(children, corpusSize);
 	}
 }
