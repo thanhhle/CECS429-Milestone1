@@ -95,18 +95,11 @@ public class PositionalInvertedIndex implements Index
 
 
 	@Override
-	public List<Posting> getPostingsWithPositions(String term)
+	public List<Posting> getPostings(String term, boolean withPosition)
 	{
 		return mMap.get(term) != null ? mMap.get(term) : new ArrayList<Posting>();
 	}
 	
-	
-	@Override
-	public List<Posting> getPostingsWithoutPositions(String term)
-	{
-		return getPostingsWithPositions(term);
-	}
-
 	
 	@Override
 	public List<String> getVocabulary()

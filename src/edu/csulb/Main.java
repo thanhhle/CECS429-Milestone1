@@ -4,6 +4,7 @@ import cecs429.documents.DirectoryCorpus;
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 import cecs429.documents.FileDocument;
+import cecs429.helper.SpellingCorrector;
 import cecs429.index.DiskIndexWriter;
 import cecs429.index.DiskPositionalIndex;
 import cecs429.index.Index;
@@ -40,6 +41,8 @@ public class Main
 	private static String directoryPath;
 	private static TokenProcessor processor;
 	private static DocumentCorpus corpus;
+	private static QueryParser queryParser;
+	private static Index index;
 	private static Scanner scan = new Scanner(System.in);;
 
 
@@ -108,9 +111,6 @@ public class Main
 	}
 
 
-	/*
-	 * Choose the token process to be used
-	 */
 	private static TokenProcessor getTokenProcessor()
 	{
 		System.out.println("\n1 - Basic token processor");
@@ -163,8 +163,8 @@ public class Main
 
 	private static void queryOverExistingIndex()
 	{
-		Index index = new DiskPositionalIndex(directoryPath);
-		QueryParser queryParser = getQueryParser();
+		index = new DiskPositionalIndex(directoryPath);
+		queryParser = getQueryParser();
 
 		// Handle some "special" queries that do not represent information needs.
 		// If the user query starts with any of these strings, perform specified operation instead of doing a postings retrieval
@@ -174,7 +174,7 @@ public class Main
 		//		:vocab - print the first 1000 terms in the vocabulary of the corpus sorted alphabetically and the count of the total number of vocabulary terms
 		while (true)
 		{
-			System.out.println("\nPlease enter a term to search: ");
+			System.out.println("\n\nPlease enter a term to search: ");
 			String term = scan.nextLine();
 
 			if (term.length() == 0)
@@ -244,46 +244,23 @@ public class Main
 				queryParser = getQueryParser();
 			}
 
+			// Run the query
 			else
 			{
-				// Parse the input into appropriate Query object
-				Query query = queryParser.parseQuery(term, corpus.getCorpusSize());
-
-				// Get a list of postings for the documents that match the query
-				List<Posting> postings = query.getPostings(index, processor);
-
-				// Construct list of string to record file names returned from the query
-				List<FileDocument> files = new ArrayList<FileDocument>();
-
-				// Output the names of the documents returned from the query, one per line
-				System.out.println("\nDocuments contain the query:");
-
-				int count = 1;
-				for (Posting p : postings)
+				runQuery(term);
+				
+				SpellingCorrector spellingCorrector = new SpellingCorrector(term, index, processor);
+				String correctionQuery = spellingCorrector.getSpellingCorrection();
+				if(!correctionQuery.equals(term) && !Normalizer.stemToken(correctionQuery).equals(term))
 				{
-					FileDocument file = (FileDocument) corpus.getDocument(p.getDocumentId());
-					System.out.println(count + " - " + file.getTitle() + " (\"" + file.getFilePath().getFileName() + "\")");
-					files.add(file);
-					count++;
-				}
-
-				// Output the number of documents returned from the query
-				System.out.println("\nEnter the number of documents returned from the query: " + postings.size());
-
-				// If the user selects a document to view, print the entire content of the document to the screen
-				if (files.size() > 0)
-				{
-					viewDocumentsMatchTheQuery(files);
+					runSpellingCorrectionQuery(correctionQuery);
 				}
 			}
 		}
 	}
 
 
-	/*
-	 * Index the corpus
-	 */
-	private static void indexCorpus(DocumentCorpus corpus)
+	private static Index indexCorpus(DocumentCorpus corpus)
 	{
 		// Constuct an inverted index
 		PositionalInvertedIndex index = new PositionalInvertedIndex();
@@ -306,7 +283,7 @@ public class Main
 		// Get all the documents in the corpus by calling GetDocuments().
 		Iterable<Document> documents = corpus.getDocuments();
 
-		// Iterate through the documents, tokenize the terms and add terms to the index with addPosting.
+		// Iterate through the documents, process the tokens and add processed terms to the index with addPosting.
 		for (Document doc : documents)
 		{
 			try
@@ -356,7 +333,9 @@ public class Main
 		indexWriter.writeIndex(index, indexDirectory.getAbsolutePath(), processor);
 		
 		// Write the kgram index to disk
-		indexWriter.writeKGramIndex(index, indexDirectory.getAbsolutePath());
+		indexWriter.writeKGramIndex(index.getKGramIndex(), indexDirectory.getAbsolutePath());
+	
+		return index;
 	}
 
 
@@ -369,7 +348,7 @@ public class Main
 		int option = 0;
 		while (true)
 		{
-			System.out.println("Please enter the number associated with the processing queries's mode to be run:");
+			System.out.println("Please enter the number associated with the querying style to be run:");
 			String input = scan.nextLine();
 
 			if (isNumeric(input))
@@ -393,10 +372,43 @@ public class Main
 		}
 	}
 
+	
+	private static void runQuery(String term)
+	{
+		// Parse the input into appropriate Query object
+		Query query = queryParser.parseQuery(term, corpus.getCorpusSize());
 
-	/*
-	 * Allow user to select a file and print out its content
-	 */
+		// Get a list of postings for the documents that match the query
+		List<Posting> postings = query.getPostings(index, processor);
+
+		// Construct list of string to record file names returned from the query
+		List<FileDocument> files = new ArrayList<FileDocument>();
+
+		// Output the names of the documents returned from the query, one per line
+		System.out.println("\nDocuments contain the query:");
+
+		int count = 1;
+		for (Posting p : postings)
+		{
+			FileDocument file = (FileDocument) corpus.getDocument(p.getDocumentId());
+			System.out.println(count + " - " + file.getTitle() 
+											 + " (\"" + file.getFilePath().getFileName() + "\")"
+											 + " -- " + String.format("%.5f", p.getWeight()));
+			files.add(file);
+			count++;
+		}
+
+		// Output the number of documents returned from the query
+		System.out.println("\nNumber of documents returned from the query: " + postings.size());
+
+		// If the user selects a document to view, print the entire content of the document to the screen
+		if (files.size() > 0)
+		{
+			viewDocumentsMatchTheQuery(files);
+		}
+	}
+
+	
 	private static void viewDocumentsMatchTheQuery(List<FileDocument> files)
 	{
 		System.out.println("\nPlease enter the document ID of the document to be viewed or anything else to continue:");
@@ -426,8 +438,20 @@ public class Main
 			}
 		}
 	}
-
-
+	
+	
+	private static void runSpellingCorrectionQuery(String correctionQuery)
+	{
+		System.out.println("\nSuggested correction: " + correctionQuery);
+		System.out.println("Do you want to run this query? Please enter Y for yes and N for no");
+		String input = scan.nextLine().toLowerCase();
+		if (input.equals("y"))
+		{
+			runQuery(correctionQuery);
+		}
+	}
+	
+	
 	private static boolean isNumeric(final String str)
 	{
 		if (str == null || str.length() == 0)
@@ -437,5 +461,4 @@ public class Main
 
 		return str.chars().allMatch(Character::isDigit);
 	}
-
 }

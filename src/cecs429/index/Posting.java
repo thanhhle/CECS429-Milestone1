@@ -9,14 +9,16 @@ import java.util.List;
 public class Posting implements Comparable<Posting>
 {
 	private int mDocumentId;
-	private List<Integer> mPositions;
 	private int mTermFreq;
+	private List<Integer> mPositions;
+	private double mWeight;
 
 	
 	public Posting(int documentId, int termFreq)
 	{
 		mDocumentId = documentId;
 		mTermFreq = termFreq;
+		mWeight = 0;
 	}
 	
 
@@ -25,6 +27,7 @@ public class Posting implements Comparable<Posting>
 		mDocumentId = documentId;
 		mPositions = positions;
 		mTermFreq = positions.size();
+		mWeight = 0;
 	}
 
 
@@ -43,6 +46,18 @@ public class Posting implements Comparable<Posting>
 	public List<Integer> getPositions()
 	{
 		return mPositions;
+	}
+	
+	
+	public double getWeight()
+	{
+		return mWeight;
+	}
+	
+	
+	public void setWeight(double weight)
+	{
+		mWeight = weight;
 	}
 
 

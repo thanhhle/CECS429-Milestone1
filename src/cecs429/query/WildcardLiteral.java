@@ -14,11 +14,13 @@ import cecs429.text.TokenProcessor;
 public class WildcardLiteral implements Query
 {
 	private String mTerm;
+	private final boolean mIsPositionNeeded;
 	
 	
-	public WildcardLiteral(String term) 
+	public WildcardLiteral(String term, boolean isPositionNeeded) 
 	{
 		mTerm = term;
+		mIsPositionNeeded = isPositionNeeded;
 	}
 	
 	
@@ -57,17 +59,19 @@ public class WildcardLiteral implements Query
 		}
 		
 		// Print list of final wildcard candidates
+		/*
 		System.out.println("\n" + candidates.size() + " wildcard matches these types:");
 		for(String candidate: candidates)
 		{
 			System.out.println("- " + candidate);
 		}
+		*/
 		
 		// Or merge the postings for the processed term from each final wildcard candidate
 		for(int i = 0; i < candidates.size(); i++)
     	{	    		
     		String processedTerm = Normalizer.stemToken(candidates.get(i));
-    		result = Operator.orMerge(result, index.getPostingsWithPositions(processedTerm));
+    		result = Operator.orMerge(result, index.getPostings(processedTerm, mIsPositionNeeded));
     	}	
 		
 		return result;

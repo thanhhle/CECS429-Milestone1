@@ -43,9 +43,8 @@ public class DiskPositionalIndex implements Index
 		this.buildKGramIndex(directoryPath);
 	}
 
-
-	@Override
-	public List<Posting> getPostingsWithPositions(String term)
+	
+	public List<Posting> getPostings(String term, boolean withPosition)
 	{
 		List<Posting> result = new ArrayList<Posting>();
 
@@ -73,12 +72,88 @@ public class DiskPositionalIndex implements Index
 
 					// Read the 4 bytes for the position frequency
 					mPostingsFile.read(buffer, 0, buffer.length);
-					int posFreq = ByteBuffer.wrap(buffer).getInt();
+					int termFreq = ByteBuffer.wrap(buffer).getInt();
+					
+					if(withPosition)
+					{
+						List<Integer> positions = new ArrayList<Integer>();
+
+						int lastPos = 0;
+						for (int k = 0; k < termFreq; k++)
+						{
+							// Read the 4 bytes for the gap of position
+							mPostingsFile.read(buffer, 0, buffer.length);
+							int pos = ByteBuffer.wrap(buffer).getInt() + lastPos;
+
+							positions.add(pos);
+
+							lastPos = pos;
+						}
+
+						// Add new created posting with docId and list of postitions
+						result.add(new Posting(docId, positions));
+					}
+					else
+					{
+						// Add new created posting with docId and term freqeuncy
+						result.add(new Posting(docId, termFreq));
+						
+						// Skip over the positions
+						mPostingsFile.skipBytes(4 * termFreq);
+					}		
+				}
+			}
+
+			catch (FileNotFoundException e)
+			{
+				throw new RuntimeException(e);
+			}
+
+			catch (IOException e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
+
+		return result;
+	}
+
+	/*
+	@Override
+	public List<Posting> getPostingsWithPositions(String term)
+	{
+		List<Posting> result = new ArrayList<Posting>();
+
+		Long byteOffset = mVocabTable.get(term);
+
+		if (byteOffset != null)
+		{
+			byte[] buffer = new byte[4];
+			try
+			{
+				mPostingsFile.seek(byteOffset);
+
+				// Read the 4 bytes for the document frequency
+				mPostingsFile.read(buffer, 0, buffer.length);
+				int docFreq = ByteBuffer.wrap(buffer).getInt();
+
+				int lastDocId = 0;
+				for (int i = 0; i < docFreq; i++)
+				{
+					// Read the 4 bytes for the gap of docId
+					mPostingsFile.read(buffer, 0, buffer.length);
+					int docId = ByteBuffer.wrap(buffer).getInt() + lastDocId;
+
+					lastDocId = docId;
+
+					// Read the 4 bytes for the term frequency
+					mPostingsFile.read(buffer, 0, buffer.length);
+					int termFreq = ByteBuffer.wrap(buffer).getInt();
 
 					List<Integer> positions = new ArrayList<Integer>();
 
 					int lastPos = 0;
-					for (int k = 0; k < posFreq; k++)
+					for (int k = 0; k < termFreq; k++)
 					{
 						// Read the 4 bytes for the gap of position
 						mPostingsFile.read(buffer, 0, buffer.length);
@@ -135,7 +210,7 @@ public class DiskPositionalIndex implements Index
 
 					lastDocId = docId;
 
-					// Read the 4 bytes for the position frequency
+					// Read the 4 bytes for the term frequency
 					mPostingsFile.read(buffer, 0, buffer.length);
 					int termFreq = ByteBuffer.wrap(buffer).getInt();
 					
@@ -159,7 +234,7 @@ public class DiskPositionalIndex implements Index
 		
 		return result;
 	}
-	
+	*/
 	
 	public Double getDocWeight(int docId)
 	{
@@ -187,6 +262,7 @@ public class DiskPositionalIndex implements Index
 	@Override
 	public void buildKGramIndex(String directoryPath)
 	{
+		System.out.println("\nLoading the kgram index...");
 		try
 		{
 			RandomAccessFile candidatesFile = new RandomAccessFile(new File(directoryPath + File.separator + "index", "candidates.bin"), "r");

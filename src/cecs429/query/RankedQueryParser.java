@@ -18,11 +18,11 @@ public class RankedQueryParser implements QueryParser
 		{
 			if(term.contains("*"))
 			{
-				children.add(new WildcardLiteral(term));
+				children.add(new WildcardLiteral(term, false));
 			}
 			else
 			{
-				children.add(new TermLiteral(term));
+				children.add(new TermLiteral(term, false));
 			}
 		}
 		return new RankedQuery(children, corpusSize);

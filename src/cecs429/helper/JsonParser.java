@@ -1,4 +1,4 @@
-package edu.csulb;
+package cecs429.helper;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -3,6 +3,8 @@ package cecs429.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import cecs429.index.Posting;
+
 
 public class Operator 
 {
@@ -132,5 +134,65 @@ public class Operator
         
         return result;
 	}
+
 	
+	
+	public static List<Posting> positionalMerge(List<Posting> list1, List<Posting> list2, int distance)
+	{
+		List<Posting> result = new ArrayList<Posting>();
+		
+		int i = 0;
+		int j = 0;
+		
+		while (i < list1.size() && j < list2.size())
+		{
+			if(list1.get(i).getDocumentId() == list2.get(j).getDocumentId())
+			{
+				 List<Integer> positions1 = list1.get(i).getPositions();
+				 List<Integer> positions2 = list2.get(j).getPositions();
+				 List<Integer> temp = new ArrayList<Integer>();
+				 
+				 int m = 0;
+				 int n = 0;
+				
+				 while(m < positions1.size() && n < positions2.size())
+				 {
+					 int dis = positions2.get(n) - positions1.get(m);
+					 
+					 if(dis == distance)
+					 {
+						 temp.add(positions1.get(m));
+						 m++;
+						 n++;
+					 }	
+					 else if(dis > distance)
+					 {
+						 m++;
+					 }
+					 else
+					 {
+						 n++;
+					 }
+				 }
+				 
+				 if(temp.size() > 0)
+				 {
+					 result.add(new Posting(list1.get(i).getDocumentId(), temp));
+				 }
+				 
+				 i++;
+				 j++;
+			}
+			else if (list1.get(i).getDocumentId() < list2.get(j).getDocumentId())
+			{
+				i++;
+			}
+			else
+			{
+				j++;
+			}
+		}
+        
+        return result;
+	}
 }

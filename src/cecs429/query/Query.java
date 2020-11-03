@@ -19,5 +19,4 @@ public interface Query
     {
     	return false;
     }
-
 }

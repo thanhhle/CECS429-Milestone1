@@ -13,11 +13,13 @@ import java.util.List;
 public class TermLiteral implements Query 
 {
 	private String mTerm;
+	private final boolean mIsPositionNeeded;
 	
 	
-	public TermLiteral(String term) 
+	public TermLiteral(String term, boolean isPositionNeeded) 
 	{
 		mTerm = term;
+		mIsPositionNeeded = isPositionNeeded;
 	}
 	
 	
@@ -31,9 +33,10 @@ public class TermLiteral implements Query
 	public List<Posting> getPostings(Index index, TokenProcessor processor) 
 	{	
 		List<Posting> result = new ArrayList<Posting>();
+		
 		for (String term: processor.processToken(mTerm))
-		{
-			result = Operator.orMerge(result, index.getPostingsWithPositions(term));
+		{	
+			result = Operator.orMerge(result, index.getPostings(term, mIsPositionNeeded));
 		}
 
 		return result;

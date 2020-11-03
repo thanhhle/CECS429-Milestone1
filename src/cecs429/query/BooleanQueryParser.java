@@ -179,8 +179,14 @@ public class BooleanQueryParser implements QueryParser
 			startIndex++;
 		}
 
+		// Create a NearLiteral object if the first non-space character is "["
+		if(subquery.charAt(startIndex) == '[')
+		{	
+			nextLiteral = findNextNearLiteral(subquery, startIndex);
+		}
+				
 		// Create a PhraseLiteral object if the first non-space character is a double-quote (")
-		if(subquery.charAt(startIndex) == '"')
+		else if(subquery.charAt(startIndex) == '"')
 		{	
 			nextLiteral = findNextPhraseLiteral(subquery, startIndex);
 		}
@@ -206,6 +212,31 @@ public class BooleanQueryParser implements QueryParser
 		}
 		
 		return nextLiteral;
+	}
+	
+	
+	private Literal findNextNearLiteral(String subquery, int startIndex)
+	{
+		int subLength = subquery.length();
+		int lengthOut;
+		
+		// Locate the next space to find the end of this literal.
+		int nextSpace = subquery.indexOf(']', startIndex);
+
+		if (nextSpace < 0) 
+		{
+			// No more literals in this subquery.
+			lengthOut = subLength - startIndex;
+		}
+		else 
+		{
+			lengthOut = nextSpace - startIndex;
+		}
+
+		// This is a phrase literal containing multiple terms.
+		return new Literal(
+				new StringBounds(startIndex, lengthOut + 1),
+				new NearLiteral(subquery.substring(startIndex, startIndex + lengthOut + 1)));
 	}
 	
 	
@@ -254,7 +285,7 @@ public class BooleanQueryParser implements QueryParser
 		// This is a wildcard literal containing a single term.
 		return new Literal(
 				new StringBounds(startIndex, lengthOut),
-				new WildcardLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
+				new WildcardLiteral(subquery.substring(startIndex, startIndex + lengthOut), false));
 	}
 	
 	
@@ -278,6 +309,6 @@ public class BooleanQueryParser implements QueryParser
 		// This is a term literal containing a single term.
 		return new Literal(
 				new StringBounds(startIndex, lengthOut),
-				new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
+				new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut), false));
 	}
 }

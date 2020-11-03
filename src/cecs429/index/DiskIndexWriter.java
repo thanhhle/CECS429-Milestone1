@@ -37,57 +37,54 @@ public class DiskIndexWriter
 		try
 		{
 			long byteOffset = 0;
-			for (String vocab : vocabulary)
+			for (String term : vocabulary)
 			{
-				for (String term : processor.processToken(vocab))
+				DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(postingsFile, true)));
+
+				// Add the byte position where the posting begins
+				vocabTable.put(term, byteOffset);
+
+				// Get the list of the posting of each vocabulary term
+				List<Posting> postings = index.getPostings(term, true);
+
+				int docFreq = postings.size();
+
+				// Write the dft to the file
+				outputStream.writeInt(docFreq);
+
+				int lastDocId = 0;
+				for (Posting posting : postings)
 				{
-					DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(postingsFile, true)));
+					int docId = posting.getDocumentId();
 
-					// Add the byte position where the posting begins
-					vocabTable.put(term, byteOffset);
+					// Write the docId using gap to the file
+					outputStream.writeInt(docId - lastDocId);
 
-					// Get the list of the posting of each vocabulary term
-					List<Posting> postings = index.getPostingsWithPositions(term);
+					// Update the last doc Id
+					lastDocId = docId;
 
-					int docFreq = postings.size();
+					List<Integer> positions = posting.getPositions();
 
-					// Write the dft to the file
-					outputStream.writeInt(docFreq);
+					int posFreq = positions.size();
 
-					int lastDocId = 0;
-					for (Posting posting : postings)
+					// Write the tftd to the file
+					outputStream.writeInt(posFreq);
+
+					int lastPos = 0;
+					for (Integer pos : positions)
 					{
-						int docId = posting.getDocumentId();
+						// Write the position using gap to the file
+						outputStream.writeInt(pos - lastPos);
 
-						// Write the docId using gap to the file
-						outputStream.writeInt(docId - lastDocId);
-
-						// Update the last doc Id
-						lastDocId = docId;
-
-						List<Integer> positions = posting.getPositions();
-
-						int posFreq = positions.size();
-
-						// Write the tftd to the file
-						outputStream.writeInt(posFreq);
-
-						int lastPos = 0;
-						for (Integer pos : positions)
-						{
-							// Write the position using gap to the file
-							outputStream.writeInt(pos - lastPos);
-
-							// Update the last position
-							lastPos = pos;
-						}
+						// Update the last position
+						lastPos = pos;
 					}
-
-					// Update the byte position of where the next posting begins
-					byteOffset += outputStream.size();
-
-					outputStream.close();
 				}
+
+				// Update the byte position of where the next posting begins
+				byteOffset += outputStream.size();
+
+				outputStream.close();
 			}
 		}
 
@@ -106,13 +103,13 @@ public class DiskIndexWriter
 		File docWeightsFile = new File(directoryPath, "docWeights.bin");
 
 		// Calculate document weight
-		double weight = 0;
+		double weightSquared = 0;
 		for (String term : termFreq.keySet())
 		{
 			// wdt = 1 + ln(tftd)
-			weight += Math.pow(1 + Math.log10(termFreq.get(term)), 2);
+			weightSquared += Math.pow(1 + Math.log(termFreq.get(term)), 2);
 		}
-		weight = Math.sqrt(weight);
+		double weight = Math.sqrt(weightSquared);
 
 		// Write the doc weight to the file
 		try
@@ -129,7 +126,7 @@ public class DiskIndexWriter
 	}
 
 
-	public void writeKGramIndex(Index index, String directoryPath)
+	public void writeKGramIndex(KGramIndex kgramIndex, String directoryPath)
 	{
 		// Get the file named "candidates.bin" which is to store the kgram index's candidates
 		File candidatesFile = new File(directoryPath, "candidates.bin");
@@ -141,9 +138,6 @@ public class DiskIndexWriter
 		BTreeMap<String, Long> kgramTable = kgramTableDB.treeMap("treemap")
 											.keySerializer(Serializer.STRING)
 											.valueSerializer(Serializer.LONG).create();
-			
-		KGramIndex kgramIndex = index.getKGramIndex();
-
 		try
 		{
 			long byteOffset = 0;
