@@ -15,13 +15,10 @@ public class RankedQuery implements Query
 	private static final int NUM_DOC_TO_RETURN = 10;
 	
 	private List<Query> mChildren;
-	private int mCorpusSize;
-	
 
-	public RankedQuery(List<Query> children, int corpusSize)
+	public RankedQuery(List<Query> children)
 	{
 		mChildren = children;
-		mCorpusSize = corpusSize;
 	}
 
 
@@ -38,7 +35,7 @@ public class RankedQuery implements Query
 
 			// Calculate query weight = ln(1 + N/dft)
 			int docFreq = postings.size();
-			double queryWeight = docFreq == 0 ? 0 : Math.log(1 + mCorpusSize/docFreq) ;
+			double queryWeight = docFreq == 0 ? 0 : Math.log(1 + ((double)index.getCorpusSize())/((double)docFreq)) ;
 
 			for (Posting posting : postings)
 			{
@@ -60,7 +57,6 @@ public class RankedQuery implements Query
 				{
 					Posting p = accumulator.get(i);
 					p.setWeight(p.getWeight() + posting.getWeight());
-					accumulator.set(i, p);
 				}
 			}
 		}
@@ -71,10 +67,12 @@ public class RankedQuery implements Query
 		// For each non-zero accumulator, divide the accumulator by Ld where Ld is read from the docWeights.bin file
 		for (Posting p : accumulator)
 		{
-			int docId = p.getDocumentId();
-			double Ld = ((DiskPositionalIndex) index).getDocWeight(docId);
-			p.setWeight(p.getWeight() / Ld);		
-			priorityQueue.add(p);
+			if(p.getWeight() > 0.0)
+			{
+				double Ld = ((DiskPositionalIndex) index).getDocWeight(p.getDocumentId());
+				p.setWeight(p.getWeight() / Ld);		
+				priorityQueue.add(p);
+			}
 		}
 
 		// Return 10 postings in the top of the priority queue

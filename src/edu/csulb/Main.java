@@ -163,7 +163,7 @@ public class Main
 
 	private static void queryOverExistingIndex()
 	{
-		index = new DiskPositionalIndex(directoryPath);
+		index = new DiskPositionalIndex(directoryPath, corpus.getCorpusSize());
 		queryParser = getQueryParser();
 
 		// Handle some "special" queries that do not represent information needs.
@@ -263,7 +263,7 @@ public class Main
 	private static Index indexCorpus(DocumentCorpus corpus)
 	{
 		// Constuct an inverted index
-		PositionalInvertedIndex index = new PositionalInvertedIndex();
+		PositionalInvertedIndex index = new PositionalInvertedIndex(corpus.getCorpusSize());
 
 		// Create an on-disk representation of the inverted index
 		DiskIndexWriter indexWriter = new DiskIndexWriter();
@@ -376,7 +376,7 @@ public class Main
 	private static void runQuery(String term)
 	{
 		// Parse the input into appropriate Query object
-		Query query = queryParser.parseQuery(term, corpus.getCorpusSize());
+		Query query = queryParser.parseQuery(term);
 
 		// Get a list of postings for the documents that match the query
 		List<Posting> postings = query.getPostings(index, processor);

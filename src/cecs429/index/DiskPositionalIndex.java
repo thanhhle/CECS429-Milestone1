@@ -22,8 +22,9 @@ public class DiskPositionalIndex implements Index
 	private RandomAccessFile mDocWeightsFile;
 	
 	private KGramIndex mKGramIndex;
+	private final int mCorpusSize;
 	
-	public DiskPositionalIndex(String directoryPath)
+	public DiskPositionalIndex(String directoryPath, int corpusSize)
 	{
 		try
 		{
@@ -41,6 +42,8 @@ public class DiskPositionalIndex implements Index
 		
 		mKGramIndex = new KGramIndex(3);
 		this.buildKGramIndex(directoryPath);
+		
+		mCorpusSize = corpusSize;
 	}
 
 	
@@ -118,123 +121,6 @@ public class DiskPositionalIndex implements Index
 		return result;
 	}
 
-	/*
-	@Override
-	public List<Posting> getPostingsWithPositions(String term)
-	{
-		List<Posting> result = new ArrayList<Posting>();
-
-		Long byteOffset = mVocabTable.get(term);
-
-		if (byteOffset != null)
-		{
-			byte[] buffer = new byte[4];
-			try
-			{
-				mPostingsFile.seek(byteOffset);
-
-				// Read the 4 bytes for the document frequency
-				mPostingsFile.read(buffer, 0, buffer.length);
-				int docFreq = ByteBuffer.wrap(buffer).getInt();
-
-				int lastDocId = 0;
-				for (int i = 0; i < docFreq; i++)
-				{
-					// Read the 4 bytes for the gap of docId
-					mPostingsFile.read(buffer, 0, buffer.length);
-					int docId = ByteBuffer.wrap(buffer).getInt() + lastDocId;
-
-					lastDocId = docId;
-
-					// Read the 4 bytes for the term frequency
-					mPostingsFile.read(buffer, 0, buffer.length);
-					int termFreq = ByteBuffer.wrap(buffer).getInt();
-
-					List<Integer> positions = new ArrayList<Integer>();
-
-					int lastPos = 0;
-					for (int k = 0; k < termFreq; k++)
-					{
-						// Read the 4 bytes for the gap of position
-						mPostingsFile.read(buffer, 0, buffer.length);
-						int pos = ByteBuffer.wrap(buffer).getInt() + lastPos;
-
-						positions.add(pos);
-
-						lastPos = pos;
-					}
-
-					result.add(new Posting(docId, positions));
-				}
-			}
-
-			catch (FileNotFoundException e)
-			{
-				throw new RuntimeException(e);
-			}
-
-			catch (IOException e)
-			{
-				throw new RuntimeException(e);
-			}
-		}
-
-		return result;
-	}
-
-	
-	@Override
-	public List<Posting> getPostingsWithoutPositions(String term)
-	{
-		List<Posting> result = new ArrayList<Posting>();
-
-		Long byteOffset = mVocabTable.get(term);
-
-		if (byteOffset != null)
-		{
-			byte[] buffer = new byte[4];
-			try
-			{
-				mPostingsFile.seek(byteOffset);
-
-				// Read the 4 bytes for the document frequency
-				mPostingsFile.read(buffer, 0, buffer.length);
-				int docFreq = ByteBuffer.wrap(buffer).getInt();
-
-				int lastDocId = 0;
-				for (int i = 0; i < docFreq; i++)
-				{
-					// Read the 4 bytes for the gap of docId
-					mPostingsFile.read(buffer, 0, buffer.length);
-					int docId = ByteBuffer.wrap(buffer).getInt() + lastDocId;
-
-					lastDocId = docId;
-
-					// Read the 4 bytes for the term frequency
-					mPostingsFile.read(buffer, 0, buffer.length);
-					int termFreq = ByteBuffer.wrap(buffer).getInt();
-					
-					result.add(new Posting(docId, termFreq));
-					
-					// Skip over the positions
-					mPostingsFile.skipBytes(4 * termFreq);
-				}
-			}
-
-			catch (FileNotFoundException e)
-			{
-				throw new RuntimeException(e);
-			}
-
-			catch (IOException e)
-			{
-				throw new RuntimeException(e);
-			}
-		}
-		
-		return result;
-	}
-	*/
 	
 	public Double getDocWeight(int docId)
 	{
@@ -320,5 +206,11 @@ public class DiskPositionalIndex implements Index
 	public KGramIndex getKGramIndex()
 	{
 		return mKGramIndex;
+	}
+	
+	
+	public int getCorpusSize()
+	{
+		return mCorpusSize;
 	}
 }

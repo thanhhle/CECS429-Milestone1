@@ -2,5 +2,5 @@ package cecs429.query;
 
 public interface QueryParser
 {
-	Query parseQuery(String query, int corpusSize);
+	Query parseQuery(String query);
 }

@@ -16,16 +16,18 @@ public class PositionalInvertedIndex implements Index
 
 	private SortedSet<String> tokens;
 	private KGramIndex mKGramIndex;
+	private final int mCorpusSize;
 
 	/**
 	 * Constructs an empty index consists of a HashMap<K, v> K is the vocabulary
 	 * appears in the corpus V is list of document ID where the K appears
 	 */
-	public PositionalInvertedIndex()
+	public PositionalInvertedIndex(int corpusSize)
 	{
 		mMap = new HashMap<String, List<Posting>>();
 		mKGramIndex = new KGramIndex(3);
 		tokens = new TreeSet<String>();
+		mCorpusSize = corpusSize;
 	}
 
 
@@ -114,5 +116,12 @@ public class PositionalInvertedIndex implements Index
 	public KGramIndex getKGramIndex()
 	{
 		return mKGramIndex;
+	}
+
+
+	@Override
+	public int getCorpusSize()
+	{
+		return mCorpusSize;
 	}	
 }

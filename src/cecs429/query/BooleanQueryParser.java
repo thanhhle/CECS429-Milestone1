@@ -44,7 +44,7 @@ public class BooleanQueryParser implements QueryParser
 	/**
 	 * Given a boolean query, parses and returns a tree of Query objects representing the query.
 	 */
-	public Query parseQuery(String query, int corpusSize) 
+	public Query parseQuery(String query) 
 	{
 		int start = 0;
 		

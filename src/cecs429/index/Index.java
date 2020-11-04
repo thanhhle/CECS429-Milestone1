@@ -30,4 +30,10 @@ public interface Index
 	 * Retrieve the K-gram index.
 	 */
 	KGramIndex getKGramIndex();
+	
+	
+	/**
+	 * Return the corpus size
+	 */
+	int getCorpusSize();
 }

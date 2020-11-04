@@ -3,16 +3,13 @@ package cecs429.helper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import cecs429.index.Index;
 import cecs429.query.Operator;
 import cecs429.query.Query;
 import cecs429.query.TermLiteral;
-import cecs429.query.WildcardLiteral;
 import cecs429.text.Normalizer;
 import cecs429.text.TokenProcessor;
 
