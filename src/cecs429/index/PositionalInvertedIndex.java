@@ -13,6 +13,7 @@ import cecs429.text.Normalizer;
 public class PositionalInvertedIndex implements Index
 {
 	private final HashMap<String, List<Posting>> mMap;
+	private final HashMap<Integer, Double> mDocLength;
 
 	private SortedSet<String> tokens;
 	private KGramIndex mKGramIndex;
@@ -25,6 +26,7 @@ public class PositionalInvertedIndex implements Index
 	public PositionalInvertedIndex(int corpusSize)
 	{
 		mMap = new HashMap<String, List<Posting>>();
+		mDocLength = new HashMap<Integer, Double>();
 		mKGramIndex = new KGramIndex(3);
 		tokens = new TreeSet<String>();
 		mCorpusSize = corpusSize;
@@ -73,6 +75,11 @@ public class PositionalInvertedIndex implements Index
 			mMap.put(term, postings);
 		}
 	}
+	
+	public void addDocLength(int documentId, double length)
+	{
+		mDocLength.put(documentId, length);
+	}
 
 
 	public void addToken(String token)
@@ -117,11 +124,19 @@ public class PositionalInvertedIndex implements Index
 	{
 		return mKGramIndex;
 	}
+	
 
 
 	@Override
 	public int getCorpusSize()
 	{
 		return mCorpusSize;
+	}
+
+
+	@Override
+	public Double getDocLength(int docId)
+	{
+		return mDocLength.get(docId);
 	}	
 }

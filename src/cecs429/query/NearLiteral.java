@@ -17,14 +17,43 @@ public class NearLiteral implements Query
 
 	public NearLiteral(String query)
 	{
-		query = query.substring(1, query.length() - 1);
-		String[] tokens = query.split(" ");
-		mQuery1 = new TermLiteral(tokens[0], true);
-		mQuery2 = new TermLiteral(tokens[2], true);
-		mDistance = Integer.parseInt(tokens[1].substring(5));
+		query = query.substring(1, query.length()-1); 
+		int index = query.toLowerCase().indexOf("near/");
+		int i = index + 5;
+		
+		while(Character.isDigit(query.charAt(i)))
+		{
+			i++;
+		}
+		
+		mDistance = Integer.parseInt(query.substring(index + 5, i));
+
+		mQuery1 = parseLiteral(query.substring(0, index).trim());
+		if(mQuery1 instanceof PhraseLiteral)
+		{
+			mDistance += ((PhraseLiteral)mQuery1).getTermCount() - 1;
+		}
+		
+		mQuery2 = parseLiteral(query.substring(i).trim());
 	}
 
 
+	private Query parseLiteral(String literal)
+	{
+		if(literal.charAt(0) == '"')
+		{ 
+			return new PhraseLiteral(literal);
+		}
+		else if(literal.contains("*"))
+		{
+			return new WildcardLiteral(literal, true);
+		}
+		else
+		{
+			return new TermLiteral(literal, true);
+		}	
+	}
+	
 	@Override
 	public List<Posting> getPostings(Index index, TokenProcessor processor)
 	{

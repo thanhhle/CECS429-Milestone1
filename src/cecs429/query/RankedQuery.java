@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 
-import cecs429.index.DiskPositionalIndex;
 import cecs429.index.Index;
 import cecs429.index.Posting;
 import cecs429.text.TokenProcessor;
@@ -33,13 +32,13 @@ public class RankedQuery implements Query
 			// Get the posting lists of each term		
 			List<Posting> postings = query.getPostings(index, processor);
 
-			// Calculate query weight = ln(1 + N/dft)
+			// Calculate query weight wqt = ln(1 + N/dft)
 			int docFreq = postings.size();
 			double queryWeight = docFreq == 0 ? 0 : Math.log(1 + ((double)index.getCorpusSize())/((double)docFreq)) ;
 
 			for (Posting posting : postings)
 			{
-				// Calculate document weight = 1 + ln(tftd)
+				// Calculate document weight wdt = 1 + ln(tftd)
 				double docWeight = 1 + Math.log(posting.getTermFreq());
 
 				// Set the posting weight to docWeight * queryWeight
@@ -69,8 +68,8 @@ public class RankedQuery implements Query
 		{
 			if(p.getWeight() > 0.0)
 			{
-				double Ld = ((DiskPositionalIndex) index).getDocWeight(p.getDocumentId());
-				p.setWeight(p.getWeight() / Ld);		
+				double docLength = index.getDocLength(p.getDocumentId());
+				p.setWeight(p.getWeight() / docLength);		
 				priorityQueue.add(p);
 			}
 		}

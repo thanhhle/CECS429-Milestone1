@@ -1,5 +1,6 @@
 package cecs429.index;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -36,4 +37,10 @@ public interface Index
 	 * Return the corpus size
 	 */
 	int getCorpusSize();
+	
+	
+	/**
+	 * Return the weight of a specific document
+	 */
+	Double getDocLength(int docId);
 }

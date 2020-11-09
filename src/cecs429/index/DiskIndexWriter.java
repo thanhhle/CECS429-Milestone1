@@ -97,19 +97,10 @@ public class DiskIndexWriter
 	}
 
 
-	public void writeDocWeights(HashMap<String, Integer> termFreq, String directoryPath)
+	public void writeDocWeights(double weight, String directoryPath)
 	{
 		// Get the file named "docWeights.bin" which is to store the index's postings
 		File docWeightsFile = new File(directoryPath, "docWeights.bin");
-
-		// Calculate document weight
-		double weightSquared = 0;
-		for (String term : termFreq.keySet())
-		{
-			// wdt = 1 + ln(tftd)
-			weightSquared += Math.pow(1 + Math.log(termFreq.get(term)), 2);
-		}
-		double weight = Math.sqrt(weightSquared);
 
 		// Write the doc weight to the file
 		try

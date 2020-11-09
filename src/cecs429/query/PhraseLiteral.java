@@ -63,6 +63,12 @@ public class PhraseLiteral implements Query
 	}
 	
 	
+	public int getTermCount()
+	{
+		return mChildren.size();
+	}
+	
+	
 	@Override
 	public String toString() 
 	{

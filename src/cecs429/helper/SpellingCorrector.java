@@ -16,7 +16,7 @@ import cecs429.text.TokenProcessor;
 
 public class SpellingCorrector
 {
-	private static final double JACCARD_THRESHOLD = 0.10;
+	private static final double JACCARD_THRESHOLD = 0.12;
 	private static final int DOCFREQ_THRESHOLD = 5;
 	private static final String BOOLEAN_OPEPATOR_REGEX = "^[near/\\d+]+$";
 
@@ -58,7 +58,7 @@ public class SpellingCorrector
 		String result = new String();
 		
 		// Get the list of query terms
-		List<String> queryTerms = Arrays.asList(mQuery.split(" "));
+		List<String> queryTerms = Arrays.asList(mQuery.toLowerCase().split(" "));
 		
 		// Get the list of indexes of the misspelled term 
 		List<Integer> indexes = getMisspelledTermIndexes(queryTerms);
@@ -98,14 +98,14 @@ public class SpellingCorrector
 			
 			result += queryTerms.get(i);
 			
-			if(mOperators.get("closingBracket").contains(i))
-			{
-				result += "]";
-			}
-			
 			if(mOperators.get("closingQuotation").contains(i))
 			{
 				result += "\"";
+			}
+			
+			if(mOperators.get("closingBracket").contains(i))
+			{
+				result += "]";
 			}
 			
 			if(i < queryTerms.size() - 1)

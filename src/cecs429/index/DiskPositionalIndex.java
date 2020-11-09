@@ -122,7 +122,8 @@ public class DiskPositionalIndex implements Index
 	}
 
 	
-	public Double getDocWeight(int docId)
+	@Override
+	public Double getDocLength(int docId)
 	{
 		try
 		{

@@ -251,8 +251,9 @@ public class Main
 				
 				SpellingCorrector spellingCorrector = new SpellingCorrector(term, index, processor);
 				String correctionQuery = spellingCorrector.getSpellingCorrection();
-				if(!correctionQuery.equals(term) && !Normalizer.stemToken(correctionQuery).equals(term))
+				if(!correctionQuery.equals(term.toLowerCase()) && !Normalizer.stemToken(correctionQuery).equals(term.toLowerCase()))
 				{
+					// Prompt user if they want to run the suggested correction if the correction query is not same as the origin query
 					runSpellingCorrectionQuery(correctionQuery);
 				}
 			}
@@ -312,8 +313,19 @@ public class Main
 
 				tokenStream.close();
 
+				// Calculate document weight
+				double totalWeightSquared = 0;
+				for (String term : termFreq.keySet())
+				{
+					// wdt = 1 + ln(tftd)
+					totalWeightSquared += Math.pow(1 + Math.log(termFreq.get(term)), 2);
+				}
+				double length = Math.sqrt(totalWeightSquared);
+				
+				index.addDocLength(doc.getId(), length);
+				
 				// Write the document weights of each document to disk
-				indexWriter.writeDocWeights(termFreq, indexDirectory.getAbsolutePath());
+				indexWriter.writeDocWeights(length, indexDirectory.getAbsolutePath());
 			}
 
 			catch (IOException e)
@@ -328,7 +340,7 @@ public class Main
 		System.out.println("\nBuilding kgram index...");
 		index.buildKGramIndex(directoryPath);
 		System.out.println(index.getKGramIndex().getKGrams().size() + " distinct kgrams in the index");
-
+		
 		// Write the postings to disk
 		indexWriter.writeIndex(index, indexDirectory.getAbsolutePath(), processor);
 		
@@ -385,7 +397,7 @@ public class Main
 		List<FileDocument> files = new ArrayList<FileDocument>();
 
 		// Output the names of the documents returned from the query, one per line
-		System.out.println("\nDocuments contain the query:");
+		System.out.println("\nDocuments contain the query \"" + term + "\":");
 
 		int count = 1;
 		for (Posting p : postings)
@@ -393,7 +405,7 @@ public class Main
 			FileDocument file = (FileDocument) corpus.getDocument(p.getDocumentId());
 			System.out.println(count + " - " + file.getTitle() 
 											 + " (\"" + file.getFilePath().getFileName() + "\")"
-											 + " -- " + String.format("%.5f", p.getWeight()));
+											 + " -- " + String.format("%.6f", p.getWeight()));
 			files.add(file);
 			count++;
 		}
