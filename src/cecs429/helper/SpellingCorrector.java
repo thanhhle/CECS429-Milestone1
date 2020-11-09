@@ -114,7 +114,6 @@ public class SpellingCorrector
 			}
 		}
 		
-		
 		return result;
 	}
 	
@@ -132,7 +131,6 @@ public class SpellingCorrector
 		// Remove apostropes from the term
 		result = Normalizer.removeApostropes(term);
 
-		
 		return result;
 	}
 	
