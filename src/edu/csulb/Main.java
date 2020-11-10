@@ -403,16 +403,24 @@ public class Main
 		for (Posting p : postings)
 		{
 			FileDocument file = (FileDocument) corpus.getDocument(p.getDocumentId());
-			System.out.println(count + " - " + file.getTitle() 
-											 + " (\"" + file.getFilePath().getFileName() + "\")"
-											 + " -- " + String.format("%.6f", p.getWeight()));
+			String ret = count + " - " + file.getTitle() 
+							   + " (\"" + file.getFilePath().getFileName() + "\")";	
+			if(queryParser instanceof RankedQueryParser)
+			{
+				ret += " -- " + String.format("%.6f", p.getWeight());
+			}
+			
+			System.out.println(ret);
 			files.add(file);
 			count++;
 		}
 
 		// Output the number of documents returned from the query
-		System.out.println("\nNumber of documents returned from the query: " + postings.size());
-
+		if(queryParser instanceof BooleanQueryParser)
+		{
+			System.out.println("\nNumber of documents returned from the query: " + postings.size());
+		}
+		
 		// If the user selects a document to view, print the entire content of the document to the screen
 		if (files.size() > 0)
 		{

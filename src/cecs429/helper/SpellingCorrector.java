@@ -32,8 +32,8 @@ public class SpellingCorrector
 		mIndex = index;
 		mProcessor = processor;
 		mQuery = query;
-		mOperators = new HashMap<String, List<Integer>>();
 		
+		mOperators = new HashMap<String, List<Integer>>();
 		mOperators.put("hyphen", new ArrayList<Integer>());
 		mOperators.put("openingBracket", new ArrayList<Integer>());
 		mOperators.put("closingBracket", new ArrayList<Integer>());
@@ -148,6 +148,7 @@ public class SpellingCorrector
 		{
 			if (!queryTerms.get(i).matches(BOOLEAN_OPEPATOR_REGEX) && !queryTerms.get(i).contains("*"))
 			{
+				// Record boolean operator of NotQuery
 				if (queryTerms.get(i).charAt(0) == '-')
 				{
 					queryTerms.set(i, queryTerms.get(i).substring(1));
@@ -157,6 +158,7 @@ public class SpellingCorrector
 					mOperators.put("hyphen", indexes);
 				}
 				
+				// Record boolean operator of NearQuery
 				if (queryTerms.get(i).charAt(0) == '[')
 				{
 					queryTerms.set(i, queryTerms.get(i).substring(1));
@@ -166,6 +168,7 @@ public class SpellingCorrector
 					mOperators.put("openingBracket", indexes);
 				}
 				
+				// Record boolean operator of NearQuery
 				if (queryTerms.get(i).charAt(queryTerms.get(i).length() - 1) == ']')
 				{
 					queryTerms.set(i, queryTerms.get(i).substring(0, queryTerms.get(i).length() - 1));
@@ -175,6 +178,7 @@ public class SpellingCorrector
 					mOperators.put("closingBracket", indexes);
 				}
 				
+				// Record boolean operator of PhraseQuery
 				if (queryTerms.get(i).charAt(0) == '"')
 				{
 					queryTerms.set(i, queryTerms.get(i).substring(1));
@@ -184,6 +188,7 @@ public class SpellingCorrector
 					mOperators.put("openingQuotation", indexes);
 				}
 				
+				// Record boolean operator of PhraseQuery
 				if (queryTerms.get(i).charAt(queryTerms.get(i).length() - 1) == '"')
 				{
 					queryTerms.set(i, queryTerms.get(i).substring(0, queryTerms.get(i).length() - 1));

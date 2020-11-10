@@ -12,8 +12,9 @@ import cecs429.text.TokenProcessor;
 public class RankedQuery implements Query
 {
 	private static final int NUM_DOC_TO_RETURN = 10;
-	
+
 	private List<Query> mChildren;
+
 
 	public RankedQuery(List<Query> children)
 	{
@@ -34,7 +35,7 @@ public class RankedQuery implements Query
 
 			// Calculate query weight wqt = ln(1 + N/dft)
 			int docFreq = postings.size();
-			double queryWeight = docFreq == 0 ? 0 : Math.log(1 + ((double)index.getCorpusSize())/((double)docFreq)) ;
+			double queryWeight = docFreq == 0 ? 0 : Math.log(1 + ((double) index.getCorpusSize()) / ((double) docFreq));
 
 			for (Posting posting : postings)
 			{
@@ -43,12 +44,12 @@ public class RankedQuery implements Query
 
 				// Set the posting weight to docWeight * queryWeight
 				posting.setWeight(docWeight * queryWeight);
-				
+
 				// Get index of the posting in the accumulator list
 				int i = accumulator.indexOf(posting);
-				
+
 				// Increase the accumulator
-				if(i < 0)
+				if (i < 0)
 				{
 					accumulator.add(posting);
 				}
@@ -61,22 +62,23 @@ public class RankedQuery implements Query
 		}
 
 		// Construct a priority queue and compare entry by accumulator value
-		PriorityQueue<Posting> priorityQueue = new PriorityQueue<Posting>((a, b) -> Double.compare(b.getWeight(), a.getWeight()));
-		
+		PriorityQueue<Posting> priorityQueue = new PriorityQueue<Posting>(
+				(a, b) -> Double.compare(b.getWeight(), a.getWeight()));
+
 		// For each non-zero accumulator, divide the accumulator by Ld where Ld is read from the docWeights.bin file
 		for (Posting p : accumulator)
 		{
-			if(p.getWeight() > 0.0)
+			if (p.getWeight() > 0.0)
 			{
 				double docLength = index.getDocLength(p.getDocumentId());
-				p.setWeight(p.getWeight() / docLength);		
+				p.setWeight(p.getWeight() / docLength);
 				priorityQueue.add(p);
 			}
 		}
 
 		// Return 10 postings in the top of the priority queue
 		int count = 0;
-		while(priorityQueue.peek() != null && count < NUM_DOC_TO_RETURN)
+		while (priorityQueue.peek() != null && count < NUM_DOC_TO_RETURN)
 		{
 			result.add(priorityQueue.poll());
 			count++;
@@ -87,10 +89,10 @@ public class RankedQuery implements Query
 
 
 	@Override
-	public String toString() 
+	public String toString()
 	{
 		String s = "";
-		for(Query query: mChildren)
+		for (Query query : mChildren)
 		{
 			s += query.toString() + " ";
 		}
