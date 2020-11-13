@@ -260,7 +260,7 @@ public class SpellingCorrector
 				editDistanceCandidates.add(candidate);
 			}
 		}
-
+		
 		// Return null if no candidate is added to the list
 		if (editDistanceCandidates.size() == 0)
 		{
@@ -295,13 +295,15 @@ public class SpellingCorrector
 				lowestEDCandidates.add(editDistanceCandidates.get(i));
 			}
 		}
-	
+		
+		result = lowestEDCandidates.get(0);
+		
 		// If multiple candidates tie, select the candidate with highest document frequency 
 		if (lowestEDCandidates.size() > 1)
 		{
 			// Set the first candidate as the one with highest document frequency
 			int highestDocFreq = mIndex.getPostings(Normalizer.stemToken(lowestEDCandidates.get(0)), false).size();
-
+					
 			// Compare the document frequency with the remaining
 			for (int i = 1; i < lowestEDCandidates.size(); i++)
 			{
@@ -316,11 +318,7 @@ public class SpellingCorrector
 				}
 			}
 		}
-		else
-		{
-			result = lowestEDCandidates.get(0);
-		}
-
+		
 		return result;
 	}
 
