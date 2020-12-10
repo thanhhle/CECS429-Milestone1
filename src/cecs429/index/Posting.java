@@ -39,7 +39,12 @@ public class Posting implements Comparable<Posting>
 
 	public int getTermFreq()
 	{
-		return mTermFreq;
+		if(mPositions == null)
+		{
+			return mTermFreq;
+		}
+		
+		return mPositions.size();
 	}
 
 

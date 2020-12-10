@@ -44,7 +44,10 @@ public class AdvancedTokenProcessor implements TokenProcessor
 					s = Normalizer.stemToken(s);
 					
 					// Add to the return list
-					result.add(s);
+					if(!s.isBlank())
+					{
+						result.add(s);
+					}	
 				}	
 			}
 		
@@ -65,7 +68,10 @@ public class AdvancedTokenProcessor implements TokenProcessor
 			s = Normalizer.stemToken(s);
 			
 			// Add to the return list
-			result.add(s);
+			if(!s.isBlank())
+			{
+				result.add(s);
+			}
 		}
 		
 		return result;
