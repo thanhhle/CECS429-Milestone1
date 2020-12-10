@@ -12,7 +12,6 @@ import java.util.PriorityQueue;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-
 import cecs429.documents.DirectoryCorpus;
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
@@ -23,7 +22,6 @@ import cecs429.text.AdvancedTokenProcessor;
 import cecs429.text.EnglishTokenStream;
 import cecs429.text.TokenProcessor;
 import cecs429.text.TokenStream;
-import cecs429.classification.Author;
 
 
 public class BayesianClassifier implements Classifier
@@ -31,29 +29,39 @@ public class BayesianClassifier implements Classifier
 	private final String directoryPath;
 	private final HashMap<Author, Index> trainingIndexes;
 	private final HashMap<Author, HashMap<String, Double>> termProbs;
-	
+
 	private int totalDocCount = 0;
 	private TokenProcessor processor = new AdvancedTokenProcessor();
 
-	public BayesianClassifier(String directoryPath, int termCount)
+
+	public BayesianClassifier(String directoryPath, int discriminatingSetSize)
 	{
 		this.directoryPath = directoryPath;
 		this.trainingIndexes = new HashMap<Author, Index>();
-		
-		SortedSet<String> trainingTerms = new TreeSet<String>();
-		for(Author author: Author.values())
+
+		SortedSet<String> trainingSet = new TreeSet<String>();
+
+		for (Author author : Author.values())
 		{
 			String path = directoryPath + File.separator + author;
 			DirectoryCorpus corpus = DirectoryCorpus.loadDirectory(Paths.get(path).toAbsolutePath());
 			Index index = indexCorpus(corpus);
-			
+
 			this.trainingIndexes.put(author, index);
 			this.totalDocCount += index.getCorpusSize();
-			trainingTerms.addAll(index.getVocabulary());
+			trainingSet.addAll(index.getVocabulary());
 		}
-		
+
 		// Build the discriminating set of vocabulary terms
-		List<String> discriminatingTerms = getDiscriminatingTerms(trainingTerms, termCount);
+		List<String> discriminatingTerms = getDiscriminatingTerms(trainingSet, discriminatingSetSize);
+
+		// Print top 10 terms by I(T, C) and giving a score of 0 to any I(T, C) that is NaN:
+		System.out.println("Top 10 terms by I(T,C), and giving a score of 0 to any I(T,C) that is NaN:");
+		for (int i = 0; i < 10; i++)
+		{
+			System.out.println(discriminatingTerms.toArray()[i]);
+		}
+		System.out.println();
 
 		// Calculate the list of probability of each term contained in each class
 		termProbs = getTermProbs(discriminatingTerms);
@@ -72,17 +80,17 @@ public class BayesianClassifier implements Classifier
 		for (Document doc : disputedCorpus.getDocuments())
 		{
 			// Trained probability of paper being in each class
-			HashMap<Author, Double> authorProbs = new HashMap<Author, Double>();
-			
-			for(Author author: Author.values())
+			HashMap<Author, Double> probs = new HashMap<Author, Double>();
+
+			for (Author author : Author.values())
 			{
-				double authorDocCount = trainingIndexes.get(author).getCorpusSize();
-				double authorProb = Math.log10(authorDocCount / n);
-				
-				for (String term: disputedIndex.getVocabulary())
+				double docCount = trainingIndexes.get(author).getCorpusSize();
+				double prob = Math.log10(docCount / n);
+
+				for (String term : disputedIndex.getVocabulary())
 				{
 					Double termProb = termProbs.get(author).get(term);
-	
+
 					if (termProb != null)
 					{
 						List<Posting> postings = disputedIndex.getPostings(term, true);
@@ -90,30 +98,31 @@ public class BayesianClassifier implements Classifier
 						{
 							if (posting.getDocumentId() == doc.getId())
 							{
-								authorProb += Math.log10(termProb);
+								prob += Math.log10(termProb);
 							}
 						}
 					}
-					
-					authorProbs.put(author, authorProb);
+
+					probs.put(author, prob);
 				}
 			}
-		
-			for(Author author: Author.values()) 
-			{
-				System.out.println(author + ": " + authorProbs.get(author));
-			}
-	
-			System.out.println("Classify \"" + doc.getTitle() + "\" as " + getAuthorWithHighestProb(authorProbs) + "\n");
+
+			/*
+			 * for(Author author: Author.values()) { System.out.println(author + ": " +
+			 * probs.get(author)); }
+			 */
+
+			System.out.println("Classify \"" + doc.getTitle() + "\" as " + getAuthorWithHighestProb(probs) + "\n");
 		}
 	}
 
 
-	private Author getAuthorWithHighestProb(HashMap<Author, Double> authorProbs)
+	private Author getAuthorWithHighestProb(HashMap<Author, Double> probs)
 	{
-		PriorityQueue<Entry<Author, Double>> priorityQueue = new PriorityQueue<Entry<Author, Double>>((a, b) -> Double.compare(b.getValue(), a.getValue()));
-		priorityQueue.addAll(authorProbs.entrySet());
-		
+		PriorityQueue<Entry<Author, Double>> priorityQueue = new PriorityQueue<Entry<Author, Double>>(
+				(a, b) -> Double.compare(b.getValue(), a.getValue()));
+		priorityQueue.addAll(probs.entrySet());
+
 		return priorityQueue.peek().getKey();
 	}
 
@@ -122,14 +131,14 @@ public class BayesianClassifier implements Classifier
 	{
 		HashMap<Author, HashMap<String, Double>> result = new HashMap<Author, HashMap<String, Double>>();
 
-		for(Author author: Author.values())
+		for (Author author : Author.values())
 		{
 			HashMap<String, Double> termProbs = new HashMap<String, Double>();
-			
+
 			Index index = trainingIndexes.get(author);
-			
+
 			int totalTermFreq = 0;
-			for (String term: discriminatingTerms)
+			for (String term : discriminatingTerms)
 			{
 				int termFreq = 0;
 
@@ -139,80 +148,78 @@ public class BayesianClassifier implements Classifier
 					termFreq += posting.getTermFreq();
 				}
 
-				totalTermFreq += termFreq;
+				termProbs.put(term, (double) termFreq + 1);
 
-				termProbs.put(term, (double)termFreq + 1);
+				totalTermFreq += termFreq;
 			}
 
-			for (String term: discriminatingTerms)
+			for (String term : discriminatingTerms)
 			{
 				termProbs.put(term, termProbs.get(term) / (totalTermFreq + discriminatingTerms.size()));
 			}
-			
+
 			result.put(author, termProbs);
 		}
-		
+
 		return result;
 	}
 
 
-	private List<String> getDiscriminatingTerms(SortedSet<String> trainingTerms, int termCount)
+	private List<String> getDiscriminatingTerms(SortedSet<String> trainingSet, int discriminatingSetSize)
 	{
-		List<String> result = new ArrayList<String>();
+		List<String> discriminatingSet = new ArrayList<String>();
 
 		HashMap<String, Double> termScore = new HashMap<String, Double>();
-		// PriorityQueue<MutualInfo> priorityQueue = new PriorityQueue<MutualInfo>((a, b) -> b.compareTo(a));
-		
-		PriorityQueue<Entry<String, Double>> priorityQueue = new PriorityQueue<Entry<String, Double>>((a, b) -> Double.compare(b.getValue(), a.getValue()));
-		
-		for(String term: trainingTerms)
+
+		PriorityQueue<Entry<String, Double>> priorityQueue = new PriorityQueue<Entry<String, Double>>(
+				(a, b) -> Double.compare(b.getValue(), a.getValue()));
+
+		for (String term : trainingSet)
 		{
 			termScore.put(term, 0.0);
-			for(Author author: Author.values())
+
+			for (Author author : Author.values())
 			{
 				Index index = trainingIndexes.get(author);
-				int n = this.totalDocCount;								// total number of documents in whole classes
-				int n1x = index.getCorpusSize();						// total number of documents in this class
-				int nx1 = getTotalDocContainingTerm(term);				// total number of documents with this term regardless of class
-				
-				int n11 = index.getPostings(term, true).size();	
-				int n01 = nx1 - n11;	
-				int n10 = n1x - n11;									// number of documents that contain term and are not in class
-				int n00 = n - (n11 + n01 + n10);
-				
+
+				int n = totalDocCount; // total number of documents in whole classes
+				int n1x = getTotalDocContainingTerm(term); // total number of documents with this term regardless of class
+				int nx1 = index.getCorpusSize(); // total number of documents in this class regardless of term containing
+
+				int n11 = index.getPostings(term, true).size(); // number of documents contain the term and in the class
+				int n01 = nx1 - n11; // number of documents does not contain the term and in the class
+				int n10 = n1x - n11; // number of documents that contain term and not in the class
+				int n00 = n - (n11 + n01 + n10); // number of documents does not contain the term and not in the class
+
 				double score = calculateScore(n11, n10, n01, n00);
-	
-				// System.out.println(score);
-				
+
 				// priorityQueue.add(new MutualInfo(term, score));
-				
-				// priorityQueue.add(new AbstractMap.SimpleEntry<String, Double>(term, score));
-				
-				termScore.put(term, termScore.get(term) + score);
+
+				priorityQueue.add(new AbstractMap.SimpleEntry<String, Double>(term, score));
+
+				// termScore.put(term, termScore.get(term) + score);
 			}
 		}
-	
-		
-		for(String term: termScore.keySet())
+
+		/*
+		 * for(String term: trainingSet) { // priorityQueue.add(new MutualInfo(term,
+		 * termScore.get(term))); priorityQueue.add(new AbstractMap.SimpleEntry<String,
+		 * Double>(term, termScore.get(term))); }
+		 */
+
+		while (priorityQueue.peek() != null && discriminatingSet.size() < discriminatingSetSize)
 		{
-			// priorityQueue.add(new MutualInfo(term, termScore.get(term)));
-			priorityQueue.add(new AbstractMap.SimpleEntry<String, Double>(term, termScore.get(term)));
-		}
-		
-	
-		
-		int count = 0;
-		while (priorityQueue.peek() != null && count < termCount)
-		{
-			// System.out.println(priorityQueue.peek().getKey() + " - " + priorityQueue.peek().getValue());
-			result.add(priorityQueue.poll().getKey());
-			count++;
+			String term = priorityQueue.poll().getKey();
+			if (!discriminatingSet.contains(term))
+			{
+				discriminatingSet.add(term);
+			}
 		}
 
-		return result;
+		return discriminatingSet;
 	}
-	
-	
+
+
 	private double calculateScore(double n11, double n10, double n01, double n00)
 	{
 		double n = n11 + n10 + n01 + n00;
@@ -221,10 +228,10 @@ public class BayesianClassifier implements Classifier
 		double nx0 = n10 + n00;
 		double n0x = n01 + n00;
 
-		double op1 = (n11/n) * (Math.log((n * n11)/(n1x * nx1))/Math.log(2));
-		double op2 = (n10/n) * (Math.log((n * n10)/(n1x * nx0))/Math.log(2));
-		double op3 = (n01/n) * (Math.log((n * n01)/(n0x * nx1))/Math.log(2));
-		double op4 = (n00/n) * (Math.log((n * n00)/(n0x * nx0))/Math.log(2));
+		double op1 = (n11 / n) * (Math.log((n * n11) / (n1x * nx1)) / Math.log(2));
+		double op2 = (n10 / n) * (Math.log((n * n10) / (n1x * nx0)) / Math.log(2));
+		double op3 = (n01 / n) * (Math.log((n * n01) / (n0x * nx1)) / Math.log(2));
+		double op4 = (n00 / n) * (Math.log((n * n00) / (n0x * nx0)) / Math.log(2));
 
 		op1 = Double.isNaN(op1) ? 0 : op1;
 		op2 = Double.isNaN(op2) ? 0 : op2;
@@ -233,23 +240,19 @@ public class BayesianClassifier implements Classifier
 
 		return op1 + op2 + op3 + op4;
 	}
-	
-	
+
+
 	private int getTotalDocContainingTerm(String term)
 	{
-		SortedSet<Integer> docIds = new TreeSet<Integer>();
-
-		for(Author author: Author.values())
+		int docCount = 0;
+		for (Author Author : Author.values())
 		{
-			List<Posting> postings = trainingIndexes.get(author).getPostings(term, false);
-			for(Posting posting: postings)
-			{
-				docIds.add(posting.getDocumentId());
-			}
+			docCount += trainingIndexes.get(Author).getPostings(term, true).size();
 		}
-		
-		return docIds.size();
+
+		return docCount;
 	}
+
 
 	private Index indexCorpus(DocumentCorpus corpus)
 	{
@@ -296,7 +299,7 @@ public class BayesianClassifier implements Classifier
 					totalWeightSquared += Math.pow(1 + Math.log(termFreq.get(term)), 2);
 				}
 				double length = Math.sqrt(totalWeightSquared);
-				
+
 				index.addDocLength(doc.getId(), length);
 			}
 
@@ -343,5 +346,12 @@ class MutualInfo implements Comparable<MutualInfo>
 	public int compareTo(MutualInfo o)
 	{
 		return this.getValue().compareTo(o.getValue());
+	}
+
+
+	public boolean equals(Object o)
+	{
+		MutualInfo info = (MutualInfo) o;
+		return this.getKey().equals(info.getKey()) && this.getValue() == info.getValue();
 	}
 }
