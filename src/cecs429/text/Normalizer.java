@@ -3,8 +3,8 @@ package cecs429.text;
 import org.tartarus.snowball.SnowballStemmer;
 import org.tartarus.snowball.ext.englishStemmer;
 
-public class Normalizer {
-	
+public class Normalizer 
+{	
 	/**
 	 * Remove all non-alphanumeric characters from the begin and end of the token, but not the middle
 	 * @param token the string
