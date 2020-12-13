@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -20,52 +19,50 @@ import cecs429.index.PositionalInvertedIndex;
 import cecs429.index.Posting;
 import cecs429.text.AdvancedTokenProcessor;
 import cecs429.text.EnglishTokenStream;
-import cecs429.text.TokenProcessor;
 import cecs429.text.TokenStream;
+
 
 public class RocchioClassifier
 {
-	private final String directoryPath;
+	private final SortedSet<String> trainingSet;
 	private final HashMap<Author, Index> trainingIndexes;
 	private final HashMap<Author, HashMap<String, Double>> centroids;
 	
-	private TokenProcessor processor = new AdvancedTokenProcessor();
+	private final DocumentCorpus disputedCorpus;
+	private final Index disputedIndex;
+	
 
 	public RocchioClassifier(String directoryPath)
 	{
-		this.directoryPath = directoryPath;
-		this.trainingIndexes = new HashMap<Author, Index>();
-
-		SortedSet<String> trainingSet = new TreeSet<String>();
+		trainingIndexes = new HashMap<Author, Index>();
+		trainingSet = new TreeSet<String>();
 		for(Author author: Author.values())
 		{
 			String path = directoryPath + File.separator + author;
 			DirectoryCorpus corpus = DirectoryCorpus.loadDirectory(Paths.get(path).toAbsolutePath());
 			Index index = indexCorpus(corpus);
 			
-			this.trainingIndexes.put(author, index);
+			trainingIndexes.put(author, index);
 			trainingSet.addAll(index.getVocabulary());
 		}
 		
 		String disputedPath = directoryPath + File.separator + "DISPUTED";
-		DocumentCorpus disputedCorpus = DirectoryCorpus.loadDirectory(Paths.get(disputedPath).toAbsolutePath());
-		Index disputedIndex = indexCorpus(disputedCorpus);
+		disputedCorpus = DirectoryCorpus.loadDirectory(Paths.get(disputedPath).toAbsolutePath());
+		disputedIndex = indexCorpus(disputedCorpus);
 		
 		trainingSet.addAll(disputedIndex.getVocabulary());
 		
-		this.centroids = calculateCentroids(trainingSet);
+		centroids = calculateCentroids();
 	}
 
 
 	public void classify()
 	{
-		String disputedPath = directoryPath + File.separator + "DISPUTED";
-		DocumentCorpus disputedCorpus = DirectoryCorpus.loadDirectory(Paths.get(disputedPath).toAbsolutePath());
-		Index disputedIndex = indexCorpus(disputedCorpus);
+		System.out.println("\nClassifying...\n");
 		
 		for (Document doc : disputedCorpus.getDocuments())
 		{
-			HashMap<Author, Double> authorDistances = new HashMap<Author, Double>();
+			HashMap<Author, Double> distances = new HashMap<Author, Double>();
 			
 			for(Author author: Author.values())
 			{
@@ -73,7 +70,7 @@ public class RocchioClassifier
 				
 				HashMap<String, Double> centroid = centroids.get(author);
 				
-				for(String term: disputedIndex.getVocabulary())
+				for(String term: trainingSet)
 				{
 					List<Posting> postings = disputedIndex.getPostings(term, true);
 					
@@ -88,6 +85,9 @@ public class RocchioClassifier
 						}
 					}
 					
+					distance += Math.pow(centroid.get(term) - termVector, 2);
+					
+					/*
 					if (centroid.get(term) != null)
 					{
 						distance += Math.pow(centroid.get(term) - termVector, 2);
@@ -96,18 +96,87 @@ public class RocchioClassifier
 					{
 						distance += Math.pow(termVector, 2);
 					}
+					*/
 				}
 				
-				authorDistances.put(author, Math.sqrt(distance));
+				distances.put(author, Math.sqrt(distance));
 			}
 			
 			for(Author author: Author.values()) 
 			{
-				System.out.println("Distance to " + author + " for \"" + doc.getTitle() + "\": " + String.format("%.6f  ", authorDistances.get(author)));
+				System.out.println("Distance to " + author + " for \"" + doc.getTitle() + "\": " + String.format("%.6f  ", distances.get(author)));
 			}
 	
-			System.out.println("Classify \"" + doc.getTitle() + "\" as " + getAuthorWithLowestDistance(authorDistances) + "\n");
+			System.out.println("Classify \"" + doc.getTitle() + "\" as " + getAuthorWithLowestDistance(distances) + "\n");
 		}
+	}
+	
+	
+	public void classify(String documentName)
+	{
+		Document document = null;
+		for (Document doc : disputedCorpus.getDocuments())
+		{
+			if(doc.getTitle().equals(documentName))
+			{
+				document = doc;
+			}
+		}
+		
+		if(document == null)
+		{
+			System.out.println("Document not found");
+			return;
+		}
+		
+		HashMap<Author, Double> distances = new HashMap<Author, Double>();
+		
+		for(Author author: Author.values())
+		{
+			double distance = 0.0;
+			
+			HashMap<String, Double> centroid = centroids.get(author);
+			
+			for(String term: trainingSet)
+			{
+				List<Posting> postings = disputedIndex.getPostings(term, true);
+				
+				double termVector = 0.0;
+				for(Posting posting: postings)
+				{
+					if(posting.getDocumentId() == document.getId())
+					{
+						double docWeight = 1 + Math.log(posting.getTermFreq());
+						double docLength = disputedIndex.getDocLength(posting.getDocumentId());
+						termVector += docWeight / docLength;
+					}
+				}
+				
+				if (centroid.get(term) != null)
+				{
+					distance += Math.pow(centroid.get(term) - termVector, 2);
+				}
+				else
+				{
+					distance += Math.pow(termVector, 2);
+				}
+			}
+			
+			distances.put(author, Math.sqrt(distance));
+		}
+		
+		for(Author author: Author.values()) 
+		{
+			System.out.println("Distance to " + author + " for \"" + documentName + "\": " + String.format("%.6f  ", distances.get(author)));
+		}
+
+		System.out.println("Classify \"" + documentName + "\" as " + getAuthorWithLowestDistance(distances) + "\n");	
+	}
+	
+	
+	public void printCentroids()
+	{
+		printCentroids(trainingSet.size());
 	}
 	
 	
@@ -115,15 +184,15 @@ public class RocchioClassifier
 	{
 		for(Author author: Author.values())
 		{
-			HashMap<String, Double> centroid = centroids.get(author);
+			System.out.println("The first " + count + " components of centroid vector for " + author);
 			
+			HashMap<String, Double> centroid = centroids.get(author);
+			SortedSet<String> terms = new TreeSet<String>(centroid.keySet());
 
-			System.out.println(author);
 			for(int i = 0; i < count; i++)
 			{
-				String term = (String) Collections.sort(centroid.keySet()).toArray()[i];
-				System.out.print (term + "\t\t");
-				System.out.println(String.format("%.9f  ", centroid.get(term)));
+				String term = (String) terms.toArray()[i];
+				System.out.print(String.format("%.9f  ", centroid.get(term)));
 			}
 			
 			System.out.println("\n");
@@ -131,16 +200,78 @@ public class RocchioClassifier
 	}
 	
 	
-	private Author getAuthorWithLowestDistance(HashMap<Author, Double> authorDistances)
+	public void printNormalizedVectors(int count, String documentName)
+	{
+		System.out.println("The first " + count + " components (alphabetically) of the normalized vector for " + documentName);
+		
+		Document document = null;
+		for (Document doc : disputedCorpus.getDocuments())
+		{
+			if(doc.getTitle().equals(documentName))
+			{
+				document = doc;
+			}
+		}
+		
+		if(document == null)
+		{
+			System.out.println("Document not found!");
+			return;
+		}
+		
+		int i = 0;
+		while(i < count)
+		{
+			String term = (String) trainingSet.toArray()[i];
+			List<Posting> postings = disputedIndex.getPostings(term, true);
+			
+			double termVector = 0.0;
+			for(Posting posting: postings)
+			{
+				if(posting.getDocumentId() == document.getId())
+				{
+					double docWeight = 1 + Math.log(posting.getTermFreq());
+					double docLength = disputedIndex.getDocLength(posting.getDocumentId());
+					termVector += docWeight / docLength;
+				}
+			}
+			
+			System.out.print(String.format("%.9f  ", termVector));
+			
+			i++;
+		}
+		
+		System.out.println("\n");
+	}
+	
+	
+	public void printTrainingSet()
+	{
+		printTrainingSet(trainingSet.size());
+	}
+	
+	
+	public void printTrainingSet(int count)
+	{
+		for(int i = 0; i < count; i++)
+		{
+			System.out.print(trainingSet.toArray()[i] + "  ");
+		}
+		
+		System.out.println("\n");
+	}
+	
+	
+	private Author getAuthorWithLowestDistance(HashMap<Author, Double> distances)
 	{
 		PriorityQueue<Entry<Author, Double>> priorityQueue = new PriorityQueue<Entry<Author, Double>>((a, b) -> Double.compare(a.getValue(), b.getValue()));
-		priorityQueue.addAll(authorDistances.entrySet());
+		priorityQueue.addAll(distances.entrySet());
 		
 		return priorityQueue.peek().getKey();
 	}
 	
 	
-	private HashMap<Author, HashMap<String, Double>> calculateCentroids(SortedSet<String> trainingSet)
+	private HashMap<Author, HashMap<String, Double>> calculateCentroids()
 	{
 		HashMap<Author, HashMap<String, Double>> centroids = new HashMap<Author, HashMap<String, Double>>();
 		
@@ -194,7 +325,7 @@ public class RocchioClassifier
 				int position = 0;
 				for (String token : tokenStream.getTokens())
 				{
-					List<String> processedTerms = processor.processToken(token);
+					List<String> processedTerms = new AdvancedTokenProcessor().processToken(token);
 
 					for (String term : processedTerms)
 					{
@@ -234,5 +365,4 @@ public class RocchioClassifier
 
 		return index;
 	}
-
 }

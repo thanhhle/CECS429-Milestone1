@@ -20,25 +20,24 @@ import cecs429.index.PositionalInvertedIndex;
 import cecs429.index.Posting;
 import cecs429.text.AdvancedTokenProcessor;
 import cecs429.text.EnglishTokenStream;
-import cecs429.text.TokenProcessor;
 import cecs429.text.TokenStream;
 
 
 public class BayesianClassifier
 {
-	private final String directoryPath;
 	private final HashMap<Author, Index> trainingIndexes;
 	private final HashMap<String, Double> discriminatingTerms;
 	private final HashMap<Author, HashMap<String, Double>> termProbs;
+	
+	private final DocumentCorpus disputedCorpus;
+	private final Index disputedIndex;
 
 	private int totalDocCount = 0;
-	private TokenProcessor processor = new AdvancedTokenProcessor();
 
 
 	public BayesianClassifier(String directoryPath, int discriminatingTermsSize)
 	{
-		this.directoryPath = directoryPath;
-		this.trainingIndexes = new HashMap<Author, Index>();
+		trainingIndexes = new HashMap<Author, Index>();
 
 		SortedSet<String> trainingSet = new TreeSet<String>();
 
@@ -48,27 +47,28 @@ public class BayesianClassifier
 			DirectoryCorpus corpus = DirectoryCorpus.loadDirectory(Paths.get(path).toAbsolutePath());
 			Index index = indexCorpus(corpus);
 
-			this.trainingIndexes.put(author, index);
-			this.totalDocCount += index.getCorpusSize();
+			trainingIndexes.put(author, index);
+			totalDocCount += index.getCorpusSize();
 			trainingSet.addAll(index.getVocabulary());
 		}
+		
+		String disputedPath = directoryPath + File.separator + "DISPUTED";
+		disputedCorpus = DirectoryCorpus.loadDirectory(Paths.get(disputedPath).toAbsolutePath());
+		disputedIndex = indexCorpus(disputedCorpus);
 
 		// Build the discriminating set of vocabulary terms
-		this.discriminatingTerms = getDiscriminatingTerms(trainingSet, discriminatingTermsSize);
+		discriminatingTerms = getDiscriminatingTerms(trainingSet, discriminatingTermsSize);
 
 		// Calculate the list of probability of each term contained in each class
-		this.termProbs = getTermProbs();
+		termProbs = getTermProbs();
 	}
 
 
 	public void classify()
 	{
-		String disputedPath = directoryPath + File.separator + "DISPUTED";
-		DocumentCorpus disputedCorpus = DirectoryCorpus.loadDirectory(Paths.get(disputedPath).toAbsolutePath());
-		Index disputedIndex = indexCorpus(disputedCorpus);
-
+		System.out.println("\nClassifying...\n");
+		
 		double n = totalDocCount;
-
 		for (Document doc : disputedCorpus.getDocuments())
 		{
 			// Trained probability of paper being in each class
@@ -86,7 +86,7 @@ public class BayesianClassifier
 					if (termProb != null)
 					{
 						List<Posting> postings = disputedIndex.getPostings(term, true);
-						for (Posting posting : postings)
+						for (Posting posting: postings)
 						{
 							if (posting.getDocumentId() == doc.getId())
 							{
@@ -99,14 +99,90 @@ public class BayesianClassifier
 				}
 			}
 	
-			for(Author author: Author.values())
-			{ 
-				System.out.println(author + ": " + probs.get(author)); 
+			for(Author author: Author.values()) 
+			{
+				System.out.println("Score of " + author + " for \"" + doc.getTitle() + "\": " + String.format("%.6f  ", probs.get(author)));
 			}
+			
 			System.out.println("Classify \"" + doc.getTitle() + "\" as " + getAuthorWithHighestProb(probs) + "\n");
 		}
 	}
+	
+	
+	public void classify(String documentName)
+	{
+		Document document = null;
+		for (Document doc : disputedCorpus.getDocuments())
+		{
+			if(doc.getTitle().equals(documentName))
+			{
+				document = doc;
+			}
+		}
+		
+		if(document == null)
+		{
+			System.out.println("Document not found");
+			return;
+		}
+		
+		double n = totalDocCount;
+		
+		// Trained probability of paper being in each class
+		HashMap<Author, Double> probs = new HashMap<Author, Double>();
 
+		for (Author author : Author.values())
+		{
+			double docCount = trainingIndexes.get(author).getCorpusSize();
+			double prob = Math.log10(docCount / n);
+
+			for (String term : disputedIndex.getVocabulary())
+			{
+				Double termProb = termProbs.get(author).get(term);
+
+				if (termProb != null)
+				{
+					List<Posting> postings = disputedIndex.getPostings(term, true);
+					for (Posting posting: postings)
+					{
+						if (posting.getDocumentId() == document.getId())
+						{
+							prob += Math.log10(termProb);
+						}
+					}
+				}
+
+				probs.put(author, prob);
+			}
+		}
+
+		for(Author author: Author.values()) 
+		{
+			System.out.println("Score of " + author + " for \"" + documentName + "\": " + String.format("%.6f  ", probs.get(author)));
+		}
+		
+		System.out.println("Classify \"" + documentName + "\" as " + getAuthorWithHighestProb(probs) + "\n");
+	}
+	
+	
+	public void printDiscriminatingTerms()
+	{
+		printDiscriminatingTerms(discriminatingTerms.size());
+	}
+	
+	
+	public void printDiscriminatingTerms(int count)
+	{
+		System.out.println("Top " + count + " terms by I(T,C), and giving a score of 0 to any I(T,C) that is NaN:");
+		for (int i = 0; i < count; i++)
+		{
+			String term = (String) discriminatingTerms.keySet().toArray()[i];
+			System.out.println(term + " - " + discriminatingTerms.get(term));
+		}
+		
+		System.out.println();
+	}
+	
 
 	private Author getAuthorWithHighestProb(HashMap<Author, Double> probs)
 	{
@@ -168,9 +244,9 @@ public class BayesianClassifier
 			{
 				Index index = trainingIndexes.get(author);
 
-				int n = totalDocCount; 						// total number of documents in whole classes
-				int n1x = getTotalDocContainingTerm(term); 	// total number of documents with this term regardless of class
-				int nx1 = index.getCorpusSize(); 			// total number of documents in this class regardless of term containing
+				int n = totalDocCount; 								// total number of documents in whole classes
+				int n1x = getTotalDocContainingTerm(term); 			// total number of documents with this term regardless of class
+				int nx1 = index.getCorpusSize(); 					// total number of documents in this class regardless of term containing
 
 				int n11 = index.getPostings(term, true).size(); 	// number of documents contain the term and in the class
 				int n01 = nx1 - n11; 								// number of documents does not contain the term and in the class
@@ -261,7 +337,7 @@ public class BayesianClassifier
 				int position = 0;
 				for (String token : tokenStream.getTokens())
 				{
-					List<String> processedTerms = processor.processToken(token);
+					List<String> processedTerms = new AdvancedTokenProcessor().processToken(token);
 
 					for (String term : processedTerms)
 					{
@@ -300,12 +376,6 @@ public class BayesianClassifier
 		// index.buildKGramIndex(directoryPath);
 
 		return index;
-	}
-	
-	
-	public HashMap<String, Double> getDiscriminatingTerms()
-	{
-		return this.discriminatingTerms;
 	}
 }
 
