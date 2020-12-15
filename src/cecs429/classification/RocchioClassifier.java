@@ -3,11 +3,12 @@ package cecs429.classification;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 
@@ -26,7 +27,7 @@ public class RocchioClassifier
 {
 	private final SortedSet<String> trainingSet;
 	private final HashMap<Author, Index> trainingIndexes;
-	private final HashMap<Author, HashMap<String, Double>> centroids;
+	private final HashMap<Author, SortedMap<String, Double>> centroids;
 	
 	private final DocumentCorpus disputedCorpus;
 	private final Index disputedIndex;
@@ -36,6 +37,7 @@ public class RocchioClassifier
 	{
 		trainingIndexes = new HashMap<Author, Index>();
 		trainingSet = new TreeSet<String>();
+		
 		for(Author author: Author.values())
 		{
 			String path = directoryPath + File.separator + author;
@@ -68,7 +70,7 @@ public class RocchioClassifier
 			{
 				double distance = 0.0;
 				
-				HashMap<String, Double> centroid = centroids.get(author);
+				SortedMap<String, Double> centroid = centroids.get(author);
 				
 				for(String term: trainingSet)
 				{
@@ -86,17 +88,6 @@ public class RocchioClassifier
 					}
 					
 					distance += Math.pow(centroid.get(term) - termVector, 2);
-					
-					/*
-					if (centroid.get(term) != null)
-					{
-						distance += Math.pow(centroid.get(term) - termVector, 2);
-					}
-					else
-					{
-						distance += Math.pow(termVector, 2);
-					}
-					*/
 				}
 				
 				distances.put(author, Math.sqrt(distance));
@@ -125,7 +116,7 @@ public class RocchioClassifier
 		
 		if(document == null)
 		{
-			System.out.println("Document not found");
+			System.out.println("Document not found!\n");
 			return;
 		}
 		
@@ -135,7 +126,7 @@ public class RocchioClassifier
 		{
 			double distance = 0.0;
 			
-			HashMap<String, Double> centroid = centroids.get(author);
+			SortedMap<String, Double> centroid = centroids.get(author);
 			
 			for(String term: trainingSet)
 			{
@@ -152,14 +143,7 @@ public class RocchioClassifier
 					}
 				}
 				
-				if (centroid.get(term) != null)
-				{
-					distance += Math.pow(centroid.get(term) - termVector, 2);
-				}
-				else
-				{
-					distance += Math.pow(termVector, 2);
-				}
+				distance += Math.pow(centroid.get(term) - termVector, 2);
 			}
 			
 			distances.put(author, Math.sqrt(distance));
@@ -184,14 +168,15 @@ public class RocchioClassifier
 	{
 		for(Author author: Author.values())
 		{
-			System.out.println("The first " + count + " components of centroid vector for " + author);
+			System.out.println("First " + count + " components of the centroid vector for " + author);
 			
-			HashMap<String, Double> centroid = centroids.get(author);
-			SortedSet<String> terms = new TreeSet<String>(centroid.keySet());
+			SortedMap<String, Double> centroid = centroids.get(author);
+			
+			Object[] terms = centroid.keySet().toArray();
 
 			for(int i = 0; i < count; i++)
 			{
-				String term = (String) terms.toArray()[i];
+				String term = (String) terms[i];
 				System.out.print(String.format("%.9f  ", centroid.get(term)));
 			}
 			
@@ -200,9 +185,15 @@ public class RocchioClassifier
 	}
 	
 	
+	public void printNormalizedVectors(String documentName)
+	{
+		printNormalizedVectors(trainingSet.size(), documentName);
+	}
+	
+	
 	public void printNormalizedVectors(int count, String documentName)
 	{
-		System.out.println("The first " + count + " components (alphabetically) of the normalized vector for " + documentName);
+		System.out.println("First " + count + " components of the normalized vector for \"" + documentName + "\"");
 		
 		Document document = null;
 		for (Document doc : disputedCorpus.getDocuments())
@@ -215,7 +206,7 @@ public class RocchioClassifier
 		
 		if(document == null)
 		{
-			System.out.println("Document not found!");
+			System.out.println("Document not found!\n");
 			return;
 		}
 		
@@ -271,13 +262,13 @@ public class RocchioClassifier
 	}
 	
 	
-	private HashMap<Author, HashMap<String, Double>> calculateCentroids()
+	private HashMap<Author, SortedMap<String, Double>> calculateCentroids()
 	{
-		HashMap<Author, HashMap<String, Double>> centroids = new HashMap<Author, HashMap<String, Double>>();
+		HashMap<Author, SortedMap<String, Double>> centroids = new HashMap<Author, SortedMap<String, Double>>();
 		
 		for(Author author: Author.values())
 		{
-			HashMap<String, Double> centroid = new HashMap<String, Double>();
+			SortedMap<String, Double> centroid = new TreeMap<String, Double>();
 			
 			Index index = trainingIndexes.get(author);
 			
@@ -288,7 +279,6 @@ public class RocchioClassifier
 				List<Posting> postings = index.getPostings(term, true);
 				for(Posting posting: postings)
 				{
-					// Calculate document weight wdt = 1 + ln(tftd)
 					double docWeight = 1 + Math.log(posting.getTermFreq());
 					double docLength = index.getDocLength(posting.getDocumentId());
 					

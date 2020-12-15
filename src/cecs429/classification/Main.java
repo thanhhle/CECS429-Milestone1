@@ -8,9 +8,8 @@ public class Main
 		String directoryPath = "/Users/thanhle/Downloads/federalist-papers";
 		runBayesianClassifier(directoryPath);
 		runRocchioClassifier(directoryPath);
+		// runKNNClassifier(directoryPath);
 	}
-	
-	
 	
 	
 	private static void runBayesianClassifier(String directoryPath)
@@ -32,11 +31,22 @@ public class Main
 		System.out.println("\n------------------------- ROCCHIO CLASSIFIER -------------------------");
 		RocchioClassifier rocchioClassifier = new RocchioClassifier(directoryPath);
 		
-		// rocchioClassifier.printTrainingSet(30);
+		rocchioClassifier.printTrainingSet(30);
 		rocchioClassifier.printCentroids(30);
-			
+		
 		// rocchioClassifier.printNormalizedVectors(30, "paper_52.txt");
+		
 		// rocchioClassifier.classify("paper_52.txt");
 		rocchioClassifier.classify();
+	}
+	
+	
+	private static void runKNNClassifier(String directoryPath)
+	{
+		System.out.println("\n------------------------- KNN CLASSIFIER -------------------------");
+		KNNClassifier kNNClassifier = new KNNClassifier(directoryPath);
+
+		// kNNClassifier.printNormalizedVectors(30, "paper_53.txt");
+		kNNClassifier.classify(5);
 	}
 }
