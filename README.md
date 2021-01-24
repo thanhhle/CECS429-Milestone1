@@ -21,7 +21,7 @@ Any time a user runs a query using a term that is either missing from the vocabu
 
 
 ### Classification
-The application uses Rocchio and Baysian classification to place a document into a category based on its content,
+The application uses Rocchio and Baysian classification to place a document into a category based on its content.
 
 
 ## Special queries
