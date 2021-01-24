@@ -19,6 +19,11 @@ When processing queries, it will also operate in two different modes: boolean re
 ### Spelling correction
 Any time a user runs a query using a term that is either missing from the vocabulary or whose document frequency is below some threshold value, the program will still run the query and give results as normal, but then print a suggested modified query where the possibly misspelled term(s) is replaced by a most-likely correction.
 
+
+### Classification
+The application uses Rocchio and Baysian classification to place a document into a category based on its content,
+
+
 ## Special queries
 - :q - exit the program.
 - :stem token - take the token string and stem it, then print the stemmed term.
