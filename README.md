@@ -1,4 +1,4 @@
-# SearchEngine
+# Search Engine
 An application written in Java
 
 
